@@ -232,6 +232,10 @@
             "libraryName": "argon2",
             "asOfVersion": "0.15.0"
         },
+        "array-equal": {
+            "libraryName": "array-equal",
+            "asOfVersion": "2.0.0"
+        },
         "array-move": {
             "libraryName": "array-move",
             "asOfVersion": "2.0.0"
@@ -247,6 +251,10 @@
         "arrify": {
             "libraryName": "arrify",
             "asOfVersion": "2.0.0"
+        },
+        "artillery": {
+            "libraryName": "artillery",
+            "asOfVersion": "2.0.26"
         },
         "artyom.js": {
             "libraryName": "artyom.js",
@@ -351,6 +359,10 @@
         "azure-mobile-apps": {
             "libraryName": "azure-mobile-apps",
             "asOfVersion": "3.0.0"
+        },
+        "babel-plugin-tester": {
+            "libraryName": "babel-plugin-tester",
+            "asOfVersion": "11.0.0"
         },
         "babel__parser": {
             "libraryName": "@babel/parser",
@@ -480,6 +492,10 @@
             "libraryName": "bin-version",
             "asOfVersion": "3.1.0"
         },
+        "binary-parser": {
+            "libraryName": "binary-parser",
+            "asOfVersion": "1.8.0"
+        },
         "binaryextensions": {
             "libraryName": "binaryextensions",
             "asOfVersion": "4.0.0"
@@ -555,6 +571,10 @@
         "bs58": {
             "libraryName": "bs58",
             "asOfVersion": "5.0.0"
+        },
+        "bs58check": {
+            "libraryName": "bs58check",
+            "asOfVersion": "3.0.1"
         },
         "bson": {
             "libraryName": "bson",
@@ -644,6 +664,10 @@
             "libraryName": "canvaskit-wasm",
             "asOfVersion": "0.18.1"
         },
+        "carbon__feature-flags": {
+            "libraryName": "@carbon/feature-flags",
+            "asOfVersion": "1.1.0"
+        },
         "carbon__icon-helpers": {
             "libraryName": "@carbon/icon-helpers",
             "asOfVersion": "10.45.0"
@@ -651,6 +675,14 @@
         "carbon__icons-react": {
             "libraryName": "@carbon/icons-react",
             "asOfVersion": "11.29.0"
+        },
+        "carbon__motion": {
+            "libraryName": "@carbon/motion",
+            "asOfVersion": "11.44.0"
+        },
+        "carbon__pictograms-react": {
+            "libraryName": "@carbon/pictograms-react",
+            "asOfVersion": "11.89.0"
         },
         "card-validator": {
             "libraryName": "card-validator",
@@ -699,6 +731,10 @@
         "chalk": {
             "libraryName": "chalk",
             "asOfVersion": "2.2.0"
+        },
+        "chalk-pipe": {
+            "libraryName": "chalk-pipe",
+            "asOfVersion": "5.1.1"
         },
         "change-case": {
             "libraryName": "change-case",
@@ -1076,6 +1112,14 @@
             "libraryName": "codegen.macro",
             "asOfVersion": "4.1.0"
         },
+        "color-convert": {
+            "libraryName": "color-convert",
+            "asOfVersion": "3.0.1"
+        },
+        "colorbrewer": {
+            "libraryName": "colorbrewer",
+            "asOfVersion": "1.6.0"
+        },
         "colors": {
             "libraryName": "colors",
             "asOfVersion": "1.2.1"
@@ -1128,6 +1172,10 @@
             "libraryName": "conf",
             "asOfVersion": "3.0.0"
         },
+        "config": {
+            "libraryName": "config",
+            "asOfVersion": "4.4.0"
+        },
         "confirmdialog": {
             "libraryName": "confirmdialog",
             "asOfVersion": "1.0.0"
@@ -1160,9 +1208,17 @@
             "libraryName": "content-range",
             "asOfVersion": "2.0.2"
         },
+        "content-type": {
+            "libraryName": "content-type",
+            "asOfVersion": "2.0.0"
+        },
         "contentstack": {
             "libraryName": "contentstack",
             "asOfVersion": "3.11.0"
+        },
+        "contract-proxy-kit": {
+            "libraryName": "contract-proxy-kit",
+            "asOfVersion": "2.0.0"
         },
         "conventional-changelog-preset-loader": {
             "libraryName": "conventional-changelog-preset-loader",
@@ -1421,6 +1477,14 @@
             "libraryName": "cypress-recurse",
             "asOfVersion": "1.9.0"
         },
+        "cytoscape": {
+            "libraryName": "cytoscape",
+            "asOfVersion": "3.31.0"
+        },
+        "cytoscape-popper": {
+            "libraryName": "cytoscape-popper",
+            "asOfVersion": "4.0.0"
+        },
         "dargs": {
             "libraryName": "dargs",
             "asOfVersion": "6.1.0"
@@ -1561,6 +1625,10 @@
             "libraryName": "detect-it",
             "asOfVersion": "4.0.0"
         },
+        "detect-libc": {
+            "libraryName": "detect-libc",
+            "asOfVersion": "2.0.0"
+        },
         "detect-newline": {
             "libraryName": "detect-newline",
             "asOfVersion": "3.0.0"
@@ -1616,6 +1684,10 @@
         "diff2html": {
             "libraryName": "diff2html",
             "asOfVersion": "3.0.0"
+        },
+        "dinero.js": {
+            "libraryName": "dinero.js",
+            "asOfVersion": "2.0.0"
         },
         "direction": {
             "libraryName": "direction",
@@ -1889,6 +1961,10 @@
             "libraryName": "error-stack-parser",
             "asOfVersion": "2.0.0"
         },
+        "es-feature-detection": {
+            "libraryName": "es-feature-detection",
+            "asOfVersion": "3.0.0"
+        },
         "es-module-lexer": {
             "libraryName": "es-module-lexer",
             "asOfVersion": "0.4.1"
@@ -1917,6 +1993,14 @@
             "libraryName": "escape-string-regexp",
             "asOfVersion": "2.0.0"
         },
+        "eslint-plugin-mocha": {
+            "libraryName": "eslint-plugin-mocha",
+            "asOfVersion": "11.1.0"
+        },
+        "eslint-scope": {
+            "libraryName": "eslint-scope",
+            "asOfVersion": "9.1.0"
+        },
         "eslint-visitor-keys": {
             "libraryName": "eslint-visitor-keys",
             "asOfVersion": "3.3.0"
@@ -1932,6 +2016,14 @@
         "esm-utils": {
             "libraryName": "esm-utils",
             "asOfVersion": "2.0.1"
+        },
+        "espree": {
+            "libraryName": "espree",
+            "asOfVersion": "11.1.0"
+        },
+        "eth-sig-util": {
+            "libraryName": "eth-sig-util",
+            "asOfVersion": "2.5.3"
         },
         "ethereumjs-tx": {
             "libraryName": "ethereumjs-tx",
@@ -2201,6 +2293,10 @@
             "libraryName": "feedme",
             "asOfVersion": "2.0.2"
         },
+        "feedparser": {
+            "libraryName": "feedparser",
+            "asOfVersion": "2.3.0"
+        },
         "feedsub": {
             "libraryName": "feedsub",
             "asOfVersion": "0.7.5"
@@ -2232,6 +2328,10 @@
         "figures": {
             "libraryName": "figures",
             "asOfVersion": "3.0.0"
+        },
+        "file-entry-cache": {
+            "libraryName": "file-entry-cache",
+            "asOfVersion": "10.0.0"
         },
         "file-type": {
             "libraryName": "file-type",
@@ -2857,6 +2957,10 @@
             "libraryName": "html-entities",
             "asOfVersion": "1.3.2"
         },
+        "html-minifier-next": {
+            "libraryName": "html-minifier-next",
+            "asOfVersion": "4.1.0"
+        },
         "html-tag-names": {
             "libraryName": "html-tag-names",
             "asOfVersion": "2.0.0"
@@ -2973,6 +3077,10 @@
             "libraryName": "image-type",
             "asOfVersion": "4.0.1"
         },
+        "imagekit": {
+            "libraryName": "imagekit",
+            "asOfVersion": "3.2.0"
+        },
         "imagemin-pngquant": {
             "libraryName": "imagemin-pngquant",
             "asOfVersion": "8.0.0"
@@ -2980,6 +3088,10 @@
         "images": {
             "libraryName": "images",
             "asOfVersion": "3.2.0"
+        },
+        "imapflow": {
+            "libraryName": "imapflow",
+            "asOfVersion": "1.0.189"
         },
         "img-diff-js": {
             "libraryName": "img-diff-js",
@@ -3100,6 +3212,10 @@
         "ip-regex": {
             "libraryName": "ip-regex",
             "asOfVersion": "4.1.0"
+        },
+        "ip-subnet-calculator": {
+            "libraryName": "ip-subnet-calculator",
+            "asOfVersion": "2.0.0"
         },
         "ipify": {
             "libraryName": "ipify",
@@ -3441,6 +3557,10 @@
             "libraryName": "json-rules-engine",
             "asOfVersion": "4.1.0"
         },
+        "json-schema-faker": {
+            "libraryName": "json-schema-faker",
+            "asOfVersion": "0.5.6"
+        },
         "json-schema-traverse": {
             "libraryName": "json-schema-traverse",
             "asOfVersion": "1.0.0"
@@ -3733,6 +3853,14 @@
             "libraryName": "leaflet.offline",
             "asOfVersion": "3.0.0"
         },
+        "leaflet.fullscreen": {
+            "libraryName": "leaflet.fullscreen",
+            "asOfVersion": "5.2.0"
+        },
+        "leaflet.locatecontrol": {
+            "libraryName": "leaflet.locatecontrol",
+            "asOfVersion": "0.85.1"
+        },
         "leap-year": {
             "libraryName": "leap-year",
             "asOfVersion": "3.0.0"
@@ -3769,9 +3897,25 @@
             "libraryName": "levenshtein-edit-distance",
             "asOfVersion": "3.0.0"
         },
+        "libarchive.js": {
+            "libraryName": "libarchive.js",
+            "asOfVersion": "2.0.1"
+        },
         "libra-core": {
             "libraryName": "libra-core",
             "asOfVersion": "1.0.5"
+        },
+        "libsodium-wrappers": {
+            "libraryName": "libsodium-wrappers",
+            "asOfVersion": "0.8.2"
+        },
+        "libsodium-wrappers-sumo": {
+            "libraryName": "libsodium-wrappers-sumo",
+            "asOfVersion": "0.8.2"
+        },
+        "libxmljs": {
+            "libraryName": "libxmljs",
+            "asOfVersion": "1.0.1"
         },
         "lifeomic__axios-fetch": {
             "libraryName": "@lifeomic/axios-fetch",
@@ -3816,6 +3960,10 @@
         "linqsharp": {
             "libraryName": "linqsharp",
             "asOfVersion": "1.0.0"
+        },
+        "lint-staged": {
+            "libraryName": "lint-staged",
+            "asOfVersion": "14.0.0"
         },
         "load-json-file": {
             "libraryName": "load-json-file",
@@ -3957,6 +4105,14 @@
             "libraryName": "map-obj",
             "asOfVersion": "3.1.0"
         },
+        "mapbox-gl": {
+            "libraryName": "mapbox-gl",
+            "asOfVersion": "3.5.0"
+        },
+        "mapbox__point-geometry": {
+            "libraryName": "@mapbox/point-geometry",
+            "asOfVersion": "1.0.0"
+        },
         "mapbox__vector-tile": {
             "libraryName": "@mapbox/vector-tile",
             "asOfVersion": "2.0.0"
@@ -3996,6 +4152,10 @@
         "marked": {
             "libraryName": "marked",
             "asOfVersion": "6.0.0"
+        },
+        "mastercard-oauth1-signer": {
+            "libraryName": "mastercard-oauth1-signer",
+            "asOfVersion": "1.2.0"
         },
         "match-sorter": {
             "libraryName": "match-sorter",
@@ -4461,9 +4621,17 @@
             "libraryName": "mongoose-autopopulate",
             "asOfVersion": "0.16.0"
         },
+        "mongoose-geojson-schema": {
+            "libraryName": "mongoose-geojson-schema",
+            "asOfVersion": "3.0.0"
+        },
         "mongoose-paginate-v2": {
             "libraryName": "mongoose-paginate-v2",
             "asOfVersion": "1.6.0"
+        },
+        "mongoose-unique-validator": {
+            "libraryName": "mongoose-unique-validator",
+            "asOfVersion": "6.1.0"
         },
         "monk": {
             "libraryName": "monk",
@@ -4661,6 +4829,10 @@
             "libraryName": "node-mailjet",
             "asOfVersion": "4.0.0"
         },
+        "node-osc": {
+            "libraryName": "node-osc",
+            "asOfVersion": "11.2.0"
+        },
         "node-pg-migrate": {
             "libraryName": "node-pg-migrate",
             "asOfVersion": "2.15.0"
@@ -4836,6 +5008,10 @@
         "openpgp": {
             "libraryName": "openpgp",
             "asOfVersion": "5.0.0"
+        },
+        "openseadragon": {
+            "libraryName": "openseadragon",
+            "asOfVersion": "6.0.0"
         },
         "opn": {
             "libraryName": "opn",
@@ -5069,6 +5245,10 @@
             "libraryName": "park-miller",
             "asOfVersion": "1.1.0"
         },
+        "parse": {
+            "libraryName": "parse",
+            "asOfVersion": "6.1.0"
+        },
         "parse-columns": {
             "libraryName": "parse-columns",
             "asOfVersion": "2.0.0"
@@ -5166,6 +5346,10 @@
             "libraryName": "perfect-scrollbar",
             "asOfVersion": "1.3.0"
         },
+        "persona": {
+            "libraryName": "persona",
+            "asOfVersion": "3.5.2"
+        },
         "pg-connection-string": {
             "libraryName": "pg-connection-string",
             "asOfVersion": "2.0.0"
@@ -5194,6 +5378,10 @@
         "phonegap-plugin-push": {
             "libraryName": "phonegap-plugin-push",
             "asOfVersion": "2.1.2"
+        },
+        "photoswipe": {
+            "libraryName": "photoswipe",
+            "asOfVersion": "5.2.5"
         },
         "php-serialize": {
             "libraryName": "php-serialize",
@@ -5507,6 +5695,10 @@
             "libraryName": "pseudo-localization",
             "asOfVersion": "2.3.7"
         },
+        "psl": {
+            "libraryName": "psl",
+            "asOfVersion": "1.11.0"
+        },
         "ptomasroos__react-native-multi-slider": {
             "libraryName": "@ptomasroos/react-native-multi-slider",
             "asOfVersion": "2.2.1"
@@ -5694,6 +5886,10 @@
         "rc-steps": {
             "libraryName": "rc-steps",
             "asOfVersion": "4.0.0"
+        },
+        "rc-switch": {
+            "libraryName": "rc-switch",
+            "asOfVersion": "2.0.0"
         },
         "rc-time-picker": {
             "libraryName": "rc-time-picker",
@@ -5963,6 +6159,10 @@
             "libraryName": "react-ga",
             "asOfVersion": "2.3.0"
         },
+        "react-grid-layout": {
+            "libraryName": "react-grid-layout",
+            "asOfVersion": "2.1.0"
+        },
         "react-helmet-async": {
             "libraryName": "react-helmet-async",
             "asOfVersion": "1.0.2"
@@ -6127,6 +6327,10 @@
             "libraryName": "react-native-google-analytics-bridge",
             "asOfVersion": "5.3.3"
         },
+        "react-native-incall-manager": {
+            "libraryName": "react-native-incall-manager",
+            "asOfVersion": "4.2.0"
+        },
         "react-native-input-spinner": {
             "libraryName": "react-native-input-spinner",
             "asOfVersion": "1.4.1"
@@ -6231,6 +6435,10 @@
             "libraryName": "react-native-version-number",
             "asOfVersion": "0.3.5"
         },
+        "react-native-video-player": {
+            "libraryName": "react-native-video-player",
+            "asOfVersion": "0.15.0"
+        },
         "react-native-view-pdf": {
             "libraryName": "react-native-view-pdf",
             "asOfVersion": "0.8.2"
@@ -6278,6 +6486,10 @@
         "react-query": {
             "libraryName": "react-query",
             "asOfVersion": "1.2.8"
+        },
+        "react-resizable": {
+            "libraryName": "react-resizable",
+            "asOfVersion": "4.0.0"
         },
         "react-resize-detector": {
             "libraryName": "react-resize-detector",
@@ -6355,6 +6567,10 @@
             "libraryName": "react-time-picker",
             "asOfVersion": "6.0.0"
         },
+        "react-timeago": {
+            "libraryName": "react-timeago",
+            "asOfVersion": "8.0.0"
+        },
         "react-toast-notifications": {
             "libraryName": "react-toast-notifications",
             "asOfVersion": "2.4.1"
@@ -6390,6 +6606,14 @@
         "react-widgets": {
             "libraryName": "react-widgets",
             "asOfVersion": "5.0.0"
+        },
+        "react-window": {
+            "libraryName": "react-window",
+            "asOfVersion": "2.0.0"
+        },
+        "react-window-infinite-loader": {
+            "libraryName": "react-window-infinite-loader",
+            "asOfVersion": "2.0.0"
         },
         "react-youtube": {
             "libraryName": "react-youtube",
@@ -7331,6 +7555,10 @@
             "libraryName": "svg-path-bbox",
             "asOfVersion": "1.1.0"
         },
+        "svg-spritemap-webpack-plugin": {
+            "libraryName": "svg-spritemap-webpack-plugin",
+            "asOfVersion": "5.0.0"
+        },
         "svg-tag-names": {
             "libraryName": "svg-tag-names",
             "asOfVersion": "3.0.0"
@@ -7407,6 +7635,10 @@
             "libraryName": "tap",
             "asOfVersion": "18.0.0"
         },
+        "tar": {
+            "libraryName": "tar",
+            "asOfVersion": "7.0.0"
+        },
         "tcomb": {
             "libraryName": "tcomb",
             "asOfVersion": "2.6.0"
@@ -7414,6 +7646,10 @@
         "tedious": {
             "libraryName": "tedious",
             "asOfVersion": "18.0.0"
+        },
+        "teen_process": {
+            "libraryName": "teen_process",
+            "asOfVersion": "4.0.0"
         },
         "temp-dir": {
             "libraryName": "temp-dir",
@@ -7506,6 +7742,10 @@
         "theming": {
             "libraryName": "theming",
             "asOfVersion": "2.0.0"
+        },
+        "through2": {
+            "libraryName": "through2",
+            "asOfVersion": "5.0.0"
         },
         "tildify": {
             "libraryName": "tildify",
@@ -7755,6 +7995,10 @@
             "libraryName": "username",
             "asOfVersion": "5.0.0"
         },
+        "uuid": {
+            "libraryName": "uuid",
+            "asOfVersion": "11.0.0"
+        },
         "uuid-apikey": {
             "libraryName": "uuid-apikey",
             "asOfVersion": "1.5.0"
@@ -7858,6 +8102,14 @@
         "vue-scrollto": {
             "libraryName": "vue-scrollto",
             "asOfVersion": "2.17.1"
+        },
+        "vue-tel-input": {
+            "libraryName": "vue-tel-input",
+            "asOfVersion": "9.7.1"
+        },
+        "vue3-json-viewer": {
+            "libraryName": "vue3-json-viewer",
+            "asOfVersion": "2.4.0"
         },
         "vuedraggable": {
             "libraryName": "vuedraggable",
@@ -7979,6 +8231,10 @@
             "libraryName": "wikidata-sdk",
             "asOfVersion": "6.1.0"
         },
+        "windows-1251": {
+            "libraryName": "windows-1251",
+            "asOfVersion": "3.0.4"
+        },
         "windows-foreground-love": {
             "libraryName": "windows-foreground-love",
             "asOfVersion": "0.3.1"
@@ -8042,6 +8298,10 @@
         "wordpress__block-serialization-default-parser": {
             "libraryName": "@wordpress/block-serialization-default-parser",
             "asOfVersion": "4.17.0"
+        },
+        "wordpress__blocks": {
+            "libraryName": "@wordpress/blocks",
+            "asOfVersion": "15.17.0"
         },
         "wordpress__components": {
             "libraryName": "@wordpress/components",
@@ -8143,6 +8403,10 @@
             "libraryName": "@wordpress/rich-text",
             "asOfVersion": "6.10.0"
         },
+        "wordpress__server-side-render": {
+            "libraryName": "@wordpress/server-side-render",
+            "asOfVersion": "6.24.1"
+        },
         "wordpress__shortcode": {
             "libraryName": "@wordpress/shortcode",
             "asOfVersion": "4.14.0"
@@ -8154,6 +8418,14 @@
         "wordpress__url": {
             "libraryName": "@wordpress/url",
             "asOfVersion": "2.14.0"
+        },
+        "wordpress__viewport": {
+            "libraryName": "@wordpress/viewport",
+            "asOfVersion": "6.44.0"
+        },
+        "wordpress__wordcount": {
+            "libraryName": "@wordpress/wordcount",
+            "asOfVersion": "4.32.0"
         },
         "words-to-numbers": {
             "libraryName": "words-to-numbers",
@@ -8286,6 +8558,10 @@
         "xregexp": {
             "libraryName": "xregexp",
             "asOfVersion": "4.4.0"
+        },
+        "xsd-schema-validator": {
+            "libraryName": "xsd-schema-validator",
+            "asOfVersion": "0.9.0"
         },
         "xstyled__styled-components": {
             "libraryName": "@xstyled/styled-components",

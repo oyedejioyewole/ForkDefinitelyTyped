@@ -12,8 +12,10 @@ export default class AdSet extends AbstractCrudObject {
         account_id: "account_id";
         adlabels: "adlabels";
         adset_schedule: "adset_schedule";
+        anchor_event_attribution_window_days: "anchor_event_attribution_window_days";
         asset_feed_id: "asset_feed_id";
         attribution_spec: "attribution_spec";
+        automatic_manual_state: "automatic_manual_state";
         bid_adjustments: "bid_adjustments";
         bid_amount: "bid_amount";
         bid_constraints: "bid_constraints";
@@ -29,6 +31,7 @@ export default class AdSet extends AbstractCrudObject {
         configured_status: "configured_status";
         created_time: "created_time";
         creative_sequence: "creative_sequence";
+        creative_sequence_repetition_pattern: "creative_sequence_repetition_pattern";
         daily_budget: "daily_budget";
         daily_min_spend_target: "daily_min_spend_target";
         daily_spend_cap: "daily_spend_cap";
@@ -45,6 +48,7 @@ export default class AdSet extends AbstractCrudObject {
         is_ba_skip_delayed_eligible: "is_ba_skip_delayed_eligible";
         is_budget_schedule_enabled: "is_budget_schedule_enabled";
         is_dynamic_creative: "is_dynamic_creative";
+        is_incremental_attribution_enabled: "is_incremental_attribution_enabled";
         issues_info: "issues_info";
         learning_stage_info: "learning_stage_info";
         lifetime_budget: "lifetime_budget";
@@ -58,6 +62,7 @@ export default class AdSet extends AbstractCrudObject {
         optimization_goal: "optimization_goal";
         optimization_sub_event: "optimization_sub_event";
         pacing_type: "pacing_type";
+        placement_soft_opt_out: "placement_soft_opt_out";
         promoted_object: "promoted_object";
         recommendations: "recommendations";
         recurring_budget_semantics: "recurring_budget_semantics";
@@ -73,8 +78,11 @@ export default class AdSet extends AbstractCrudObject {
         targeting_optimization_types: "targeting_optimization_types";
         time_based_ad_rotation_id_blocks: "time_based_ad_rotation_id_blocks";
         time_based_ad_rotation_intervals: "time_based_ad_rotation_intervals";
+        trending_topics_spec: "trending_topics_spec";
         updated_time: "updated_time";
         use_new_app_click: "use_new_app_click";
+        value_rule_set_id: "value_rule_set_id";
+        value_rules_applied: "value_rules_applied";
     }>;
     static get BidStrategy(): Readonly<{
         cost_cap: "COST_CAP";
@@ -115,6 +123,7 @@ export default class AdSet extends AbstractCrudObject {
         ad_recall_lift: "AD_RECALL_LIFT";
         app_installs: "APP_INSTALLS";
         app_installs_and_offsite_conversions: "APP_INSTALLS_AND_OFFSITE_CONVERSIONS";
+        automatic_objective: "AUTOMATIC_OBJECTIVE";
         conversations: "CONVERSATIONS";
         derived_events: "DERIVED_EVENTS";
         engaged_users: "ENGAGED_USERS";
@@ -148,6 +157,19 @@ export default class AdSet extends AbstractCrudObject {
         deleted: "DELETED";
         paused: "PAUSED";
     }>;
+    static get AutomaticManualState(): Readonly<{
+        automatic: "AUTOMATIC";
+        manual: "MANUAL";
+        unset: "UNSET";
+    }>;
+    static get BudgetSource(): Readonly<{
+        none: "NONE";
+        rmn: "RMN";
+    }>;
+    static get CreativeSequenceRepetitionPattern(): Readonly<{
+        full_sequence: "FULL_SEQUENCE";
+        last_ad: "LAST_AD";
+    }>;
     static get DatePreset(): Readonly<{
         data_maximum: "DATA_MAXIMUM";
         last_14d: "LAST_14D";
@@ -174,8 +196,11 @@ export default class AdSet extends AbstractCrudObject {
         app: "APP";
         applinks_automatic: "APPLINKS_AUTOMATIC";
         facebook: "FACEBOOK";
+        facebook_live: "FACEBOOK_LIVE";
         facebook_page: "FACEBOOK_PAGE";
+        imagine: "IMAGINE";
         instagram_direct: "INSTAGRAM_DIRECT";
+        instagram_live: "INSTAGRAM_LIVE";
         instagram_profile: "INSTAGRAM_PROFILE";
         instagram_profile_and_facebook_page: "INSTAGRAM_PROFILE_AND_FACEBOOK_PAGE";
         messaging_instagram_direct_messenger: "MESSAGING_INSTAGRAM_DIRECT_MESSENGER";
@@ -209,6 +234,7 @@ export default class AdSet extends AbstractCrudObject {
     }>;
     static get OptimizationSubEvent(): Readonly<{
         none: "NONE";
+        post_interaction: "POST_INTERACTION";
         travel_intent: "TRAVEL_INTENT";
         travel_intent_bucket_01: "TRAVEL_INTENT_BUCKET_01";
         travel_intent_bucket_02: "TRAVEL_INTENT_BUCKET_02";
@@ -226,6 +252,13 @@ export default class AdSet extends AbstractCrudObject {
         value_3: "3";
         value_4: "4";
         value_5: "5";
+        value_6: "6";
+        value_7: "7";
+        value_8: "8";
+        value_9: "9";
+        value_10: "10";
+        value_11: "11";
+        value_12: "12";
     }>;
     static get TuneForCategory(): Readonly<{
         credit: "CREDIT";
@@ -253,6 +286,7 @@ export default class AdSet extends AbstractCrudObject {
     getAdRulesGoverned(fields: string[], params?: Record<string, any>, fetchFirstPage?: boolean): Cursor | Promise<Cursor>;
     getAds(fields: string[], params?: Record<string, any>, fetchFirstPage?: boolean): Cursor | Promise<Cursor>;
     getAsyncAdRequests(fields: string[], params?: Record<string, any>, fetchFirstPage?: boolean): Cursor | Promise<Cursor>;
+    getBudgetSchedules(fields: string[], params?: Record<string, any>, fetchFirstPage?: boolean): Cursor | Promise<Cursor>;
     createBudgetSchedule(fields: string[], params?: Record<string, any>, pathOverride?: string | null): Promise<HighDemandPeriod>;
     getCopies(fields: string[], params?: Record<string, any>, fetchFirstPage?: boolean): Cursor | Promise<Cursor>;
     createCopy(fields: string[], params?: Record<string, any>, pathOverride?: string | null): Promise<AdSet>;

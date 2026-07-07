@@ -1,11 +1,11 @@
 interface HasBuffer {
-    buffer: ArrayBufferLike;
+    buffer: Uint8Array;
 }
 
 interface DecodedImage {
     width: number;
     height: number;
-    data: ArrayBuffer;
+    data: Uint8ClampedArray;
 }
 
 interface Decodable {

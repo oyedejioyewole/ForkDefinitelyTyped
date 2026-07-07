@@ -1,8 +1,8 @@
 {
     "private": true,
     "name": "@types/google-publisher-tag",
-    "version": "1.20250428.9999",
-    "nonNpm": true,
+    "version": "1.20260525.9999",
+    "nonNpm": "conflict",
     "nonNpmDescription": "Google Publisher Tag",
     "projects": [
         "https://developers.google.com/publisher-tag/"
@@ -16,12 +16,20 @@
             "githubUsername": "jimper"
         },
         {
-            "name": "Khoi Doan",
-            "githubUsername": "zombifier"
+            "name": "Zheng Wei",
+            "githubUsername": "zhengweiwithoutthei"
         },
         {
-            "name": "Taymon A. Beal",
-            "githubUsername": "taymonbeal"
+            "name": "Jacob Goldman",
+            "githubUsername": "JacobGo"
+        },
+        {
+            "name": "Anthony LaConte",
+            "githubUsername": "alaconte"
+        },
+        {
+            "name": "Gene Levitzky",
+            "githubUsername": "glevitzky"
         }
     ]
 }

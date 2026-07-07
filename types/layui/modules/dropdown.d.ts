@@ -45,7 +45,7 @@ declare namespace Layui {
         /**
          * 绑定元素选择器或 DOM 对象
          */
-        elem?: string | Element | JQuery;
+        elem?: string | globalThis.Element | JQuery;
         /**
          * 菜单列数据项，也可用 {@link content|content} 选项自定义模板
          */
@@ -58,7 +58,7 @@ declare namespace Layui {
          * 触发组件的事件类型。支持所有事件
          * @default 'click'
          */
-        trigger?: keyof HTMLElementEventMap;
+        trigger?: "hover" | keyof HTMLElementEventMap;
         /**
          * 是否初始即显示组件面板
          * @default false

@@ -5,6 +5,7 @@ import { AbstractCrudObject } from "./../abstract-crud-object";
  */
 export default class LeadGenFormPreviewDetails extends AbstractCrudObject {
     static get Fields(): Readonly<{
+        book_on_website_text: "book_on_website_text";
         call_business_text: "call_business_text";
         call_to_action_title: "call_to_action_title";
         chat_on_messenger_text: "chat_on_messenger_text";
@@ -49,5 +50,7 @@ export default class LeadGenFormPreviewDetails extends AbstractCrudObject {
         social_proof_section_headers: "social_proof_section_headers";
         submit_button_text: "submit_button_text";
         view_file_text: "view_file_text";
+        whats_app_opt_in_body: "whats_app_opt_in_body";
+        whats_app_opt_in_title: "whats_app_opt_in_title";
     }>;
 }

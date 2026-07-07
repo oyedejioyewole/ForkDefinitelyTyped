@@ -7,6 +7,8 @@ import {
     ColumnDefinition,
     ColumnDefinitionSorterParams,
     DataTreeModule,
+    Filter,
+    FilterModule,
     GroupComponent,
     InputParams,
     JSONRecord,
@@ -57,6 +59,30 @@ table.setFilter([
         { field: "name", type: "=", value: "steve" }, // or a name of steve
     ],
 ]);
+
+// Test addFilter with standard field-based filter
+table.addFilter("name", "=", "John");
+table.addFilter("age", ">", 21, { separator: "," });
+
+// Test addFilter with custom function filter
+const customFilter = (data: any, filterParams: any): boolean => {
+    return data.age > filterParams.minAge && data.name.includes(filterParams.searchTerm);
+};
+table.addFilter(customFilter, { minAge: 18, searchTerm: "John" });
+
+// Test removeFilter with standard field-based filter
+table.removeFilter("name", "=", "John");
+
+// Test removeFilter with custom function filter (must use same function reference)
+table.removeFilter(customFilter, { minAge: 18, searchTerm: "John" });
+
+// Test dependencies option with external libraries
+table = new Tabulator("#test", {
+    dependencies: {
+        DateTime: {} as any, // Mock DateTime library
+        customLib: { version: "1.0" },
+    },
+});
 
 table
     .setPageToRow(12)
@@ -384,6 +410,7 @@ colDef.validator = {
 };
 colDef.validator = "float";
 colDef.validator = { type: "float", parameters: {} };
+colDef.validator = (cell, value) => true;
 
 let validators: Validator[] = [
     { type: "integer", parameters: {} },
@@ -397,6 +424,10 @@ let validators: Validator[] = [
 
 colDef.headerFilterFunc = (headerValue, rowValue, rowData, filterParams) => {
     return rowData.name === filterParams.name && rowValue < headerValue; // must return a boolean, true if it passes the filter.
+};
+
+colDef.headerFilterFuncParams = {
+    myParam: "my param",
 };
 
 // Calculation
@@ -433,6 +464,23 @@ colDef.tooltip = (event: MouseEvent, cell: CellComponent, onRendered: (callback:
         console.log("rendering occurred");
     });
     return cell.getValue();
+};
+
+// Additional tests for tooltip signature / return values
+// boolean values
+colDef.tooltip = false;
+colDef.tooltip = true;
+
+// function returning a string
+colDef.tooltip = (e: MouseEvent, cell: CellComponent) => {
+    return "Tooltip";
+};
+
+// function returning an HTMLElement
+colDef.tooltip = (e: MouseEvent, cell: CellComponent) => {
+    const el = document.createElement("div");
+    el.innerText = "Tooltip";
+    return el;
 };
 
 // Cell Component
@@ -591,6 +639,30 @@ table.download("pdf", "data.pdf", {
 table.download("xlsx", "AllData.xlsx");
 table.download("csv", "data.csv", { bom: true });
 table.download("csv", "data.csv", { delimiter: "." });
+table.download(
+    (rows, options, setFileContents) => {
+        const fileContents: string[] = [];
+        rows.forEach((row) => {
+            const item: any[] = [];
+            switch (row.type) {
+                case "header":
+                case "group":
+                case "calc":
+                case "row":
+                    row.columns.forEach((col) => {
+                        if (col) {
+                            item.push(col.value);
+                        }
+                        fileContents.push(item.join(options.delimiter));
+                    });
+                    break;
+            }
+        });
+        setFileContents(fileContents.join("\r\n"), "text/plain");
+    },
+    "data.txt",
+    { delimiter: "." },
+);
 
 // 4.4 updates
 table.moveColumn("name", "age", true);
@@ -692,7 +764,7 @@ table.blockRedraw();
 table.restoreRedraw();
 
 table.getRows("visible");
-table.deleteRow([15, 7, 9]);
+table.deleteRow([15, 7, 9]).then(() => {});
 
 table.addColumn({} as ColumnDefinition).then(() => {});
 
@@ -923,6 +995,12 @@ table = new Tabulator("#example-table", {
     },
 });
 
+new Tabulator("#example-table", {
+    autoColumnsDefinitions: [
+        { field: "migration_up", formatter: "textarea" },
+    ],
+});
+
 let colDefs: ColumnDefinition[] = [];
 colDefs.push({
     field: "name",
@@ -1115,12 +1193,24 @@ table.import("json", ".json");
 // 5.2
 table = new Tabulator("#test", {
     popupContainer: true,
+    rowClickPopup: "I'm a row Popup",
+    rowContextPopup: "I'm a row right-click Popup",
+    groupClickPopup: "Im a group Popup",
+    groupContextPopup: "Im a group right-click Popup",
     // test editor of type 'list' supported.
     columns: [
         {
             field: "test_editor",
             title: "Test Editor",
             editor: "list",
+            clickPopup: "Hey, Im a Popup!",
+        },
+        {
+            field: "test_popup",
+            title: "Test Popup",
+            contextPopup: (event, cell, onRendered) => {
+                return String(cell.getValue());
+            },
         },
     ],
 });
@@ -1479,7 +1569,7 @@ table = new Tabulator("#test", {
     ],
     dataTreeChildColumnCalcs: true,
     placeholder() {
-        return this.getHeaderFilters().length ? "No Matching Data" : "No Data";
+        return this.getHeaderFilters().length ? "No Matching Data" : new HTMLDivElement();
     },
     placeholderHeaderFilter: "No Matching Data",
     persistence: {
@@ -1832,3 +1922,17 @@ table = new Tabulator("#test-selectableRowsCheck", {
         { title: "Name", field: "name", headerMenu: headerMenuFunc },
     ],
 });
+
+// Testing FilterModule
+// getFilters can take a boolean or no arguments (it defaults to false)
+table.setFilter("name", "<=", 3);
+table.getFilters();
+table.getFilters(true);
+table.getFilters(false);
+// $ExpectType HeaderFilterFunc
+FilterModule.filters[0];
+
+// Testing SortModule
+// setSort can take a string or an array of Sorters
+table.setSort("title", "asc");
+table.setSort([{ column: "title", dir: "asc" }]);

@@ -1,29 +1,22 @@
 import { Texture } from "../../textures/Texture.js";
 import Node from "../core/Node.js";
 import UniformNode from "../core/UniformNode.js";
-import { ShaderNodeObject } from "../tsl/TSLCore.js";
 
-export default class TextureNode extends UniformNode<Texture> {
+interface TextureNodeInterface {
     readonly isTextureNode: true;
 
-    uvNode: ShaderNodeObject<Node> | null;
-    levelNode: ShaderNodeObject<Node> | null;
-    biasNode: ShaderNodeObject<Node> | null;
+    uvNode: Node<"vec2"> | Node<"vec3"> | null;
+    levelNode: Node | null;
+    biasNode: Node | null;
     compareNode: Node | null;
     depthNode: Node | null;
     gradNode: Node | null;
+    gatherNode: Node<"int"> | null;
 
     sampler: boolean;
     updateMatrix: boolean;
 
     referenceNode: Node | null;
-
-    constructor(
-        value?: Texture,
-        uvNode?: ShaderNodeObject<Node> | null,
-        levelNode?: ShaderNodeObject<Node> | null,
-        biasNode?: ShaderNodeObject<Node> | null,
-    );
 
     getDefaultUV(): Node;
 
@@ -31,48 +24,70 @@ export default class TextureNode extends UniformNode<Texture> {
 
     getSampler(): boolean;
 
-    /**
-     * @deprecated
-     */
-    uv(uvNode: Node): ShaderNodeObject<Node>;
+    sample(uvNode: Node): this;
 
-    sample(uvNode: Node): ShaderNodeObject<Node>;
+    load(uvNode: Node): this;
 
-    blur(amountNode: Node): ShaderNodeObject<Node>;
+    blur(amountNode: Node): this;
 
-    level(levelNode: Node): ShaderNodeObject<Node>;
+    level(levelNode: Node): this;
 
-    size(levelNode: Node): ShaderNodeObject<Node>;
+    size(levelNode: Node): Node;
 
-    bias(biasNode: Node): ShaderNodeObject<Node>;
+    bias(biasNode: Node): this;
 
-    compare(compareNode: Node): ShaderNodeObject<Node>;
+    getBase(): TextureNode;
 
-    grad(gradeNodeX: Node, gradeNodeY: Node): ShaderNodeObject<Node>;
+    compare(compareNode: Node<"float"> | number): this;
 
-    depth(depthNode: Node): ShaderNodeObject<Node>;
+    grad(gradeNodeX: Node, gradeNodeY: Node): this;
+
+    gather(gatherNode?: Node<"int"> | number): this;
+
+    depth(depthNode: Node): this;
+
+    offset(offsetNode: Node<"ivec2">): this;
 
     clone(): this;
 }
 
+declare const TextureNode: {
+    new(
+        value?: Texture,
+        uvNode?: Node | null,
+        levelNode?: Node | null,
+        biasNode?: Node | null,
+    ): TextureNode;
+};
+
+type TextureNode<TNodeType = "vec4"> = TextureNodeInterface & UniformNode<TNodeType, Texture>;
+
+export default TextureNode;
+
 export const texture: (
-    value?: Texture,
+    value?: Texture | TextureNode,
     uvNode?: Node | null,
     levelNode?: Node | number | null,
     biasNode?: Node | null,
-) => ShaderNodeObject<TextureNode>;
+) => TextureNode;
 
 export const uniformTexture: (
     value?: Texture,
-) => ShaderNodeObject<TextureNode>;
+) => TextureNode;
 
 export const textureLoad: (
-    value?: Texture,
+    value?: Texture | TextureNode,
     uvNode?: Node,
     levelNode?: Node | number,
     biasNode?: Node,
-) => ShaderNodeObject<TextureNode>;
+) => TextureNode;
 
-export const sampler: (value: Texture | TextureNode) => ShaderNodeObject<Node>;
+export const textureLevel: (
+    value: Texture | TextureNode,
+    uv: Node,
+    level: Node,
+) => TextureNode;
 
-export const samplerComparison: (value: Texture | TextureNode) => ShaderNodeObject<Node>;
+export const sampler: (value: Texture | TextureNode) => Node;
+
+export const samplerComparison: (value: Texture | TextureNode) => Node;

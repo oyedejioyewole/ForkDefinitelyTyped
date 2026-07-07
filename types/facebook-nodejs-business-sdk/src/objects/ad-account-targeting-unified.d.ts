@@ -67,6 +67,7 @@ export default class AdAccountTargetingUnified extends AbstractCrudObject {
         online_gambling_and_gaming: "ONLINE_GAMBLING_AND_GAMING";
     }>;
     static get RegulatedCountries(): Readonly<{
+        ac: "AC";
         ad: "AD";
         ae: "AE";
         af: "AF";
@@ -345,6 +346,7 @@ export default class AdAccountTargetingUnified extends AbstractCrudObject {
         custom_audiences: "custom_audiences";
         device_platforms: "device_platforms";
         direct_install_devices: "direct_install_devices";
+        dt_consolidation_state: "dt_consolidation_state";
         dynamic_audience_ids: "dynamic_audience_ids";
         education_majors: "education_majors";
         education_schools: "education_schools";
@@ -398,6 +400,7 @@ export default class AdAccountTargetingUnified extends AbstractCrudObject {
         industries: "industries";
         instagram_hashtags: "instagram_hashtags";
         instagram_positions: "instagram_positions";
+        install_state_application: "install_state_application";
         instream_video_skippable_excluded: "instream_video_skippable_excluded";
         instream_video_sponsorship_placements: "instream_video_sponsorship_placements";
         interest_defaults_source: "interest_defaults_source";
@@ -455,6 +458,7 @@ export default class AdAccountTargetingUnified extends AbstractCrudObject {
         zips: "zips";
     }>;
     static get AppStore(): Readonly<{
+        all_app_stores_for_android_and_ios: "all_app_stores_for_android_and_ios";
         amazon_app_store: "amazon_app_store";
         apk_mirror: "apk_mirror";
         apk_monk: "apk_monk";

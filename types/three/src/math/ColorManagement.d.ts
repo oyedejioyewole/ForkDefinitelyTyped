@@ -11,7 +11,7 @@ export interface ColorSpaceDefinition {
     fromXYZ: Matrix3;
     luminanceCoefficients: [number, number, number];
     workingColorSpaceConfig?: { unpackColorSpace: string };
-    outputColorSpaceConfig?: { drawingBufferColorSpace: string };
+    outputColorSpaceConfig?: { drawingBufferColorSpace: string; toneMappingNode?: "extended" | "standard" };
 }
 
 export interface ColorManagement {
@@ -37,7 +37,7 @@ export interface ColorManagement {
 
     getTransfer: (colorSpace: string) => ColorSpaceTransfer;
 
-    getLuminanceCoefficients: (target: Vector3, colorSpace?: string) => [number, number, number];
+    getLuminanceCoefficients: (target: Vector3, colorSpace?: string) => Vector3;
 
     define: (colorSpaces: Record<string, ColorSpaceDefinition>) => void;
 

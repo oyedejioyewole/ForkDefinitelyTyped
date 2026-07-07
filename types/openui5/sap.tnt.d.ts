@@ -1,4 +1,4 @@
-// For Library Version: 1.138.0
+// For Library Version: 1.150.0
 
 declare module "sap/tnt/library" {
   /**
@@ -18,7 +18,6 @@ declare module "sap/tnt/library" {
    * This enum is part of the 'sap/tnt/library' module export and must be accessed by the property 'NavigationListItemDesign'.
    *
    * @since 1.133.0
-   * @experimental Behavior might change.
    */
   export enum NavigationListItemDesign {
     /**
@@ -51,7 +50,6 @@ declare module "sap/tnt/library" {
    * This enum is part of the 'sap/tnt/library' module export and must be accessed by the property 'SideNavigationDesign'.
    *
    * @since 1.134.0
-   * @experimental Behavior might change.
    */
   export enum SideNavigationDesign {
     /**
@@ -140,6 +138,10 @@ declare module "sap/tnt/IllustratedMessageType" {
      * "Dialog" illustration type.
      */
     Dialog = "tnt-Dialog",
+    /**
+     * "EmptyContentPane" illustration type.
+     */
+    EmptyContentPane = "tnt-EmptyContentPane",
     /**
      * "ExternalLink" illustration type.
      */
@@ -1437,8 +1439,7 @@ declare module "sap/tnt/NavigationListGroup" {
   /**
    * Describes the settings that can be provided to the NavigationListGroup constructor.
    */
-  export interface $NavigationListGroupSettings
-    extends $NavigationListItemBaseSettings {
+  export interface $NavigationListGroupSettings extends $NavigationListItemBaseSettings {
     /**
      * The sub items.
      *
@@ -1463,6 +1464,8 @@ declare module "sap/tnt/NavigationListItem" {
   import { NavigationListItemDesign } from "sap/tnt/library";
 
   import ElementMetadata from "sap/ui/core/ElementMetadata";
+
+  import ObjectStatus from "sap/m/ObjectStatus";
 
   import {
     PropertyBindingInfo,
@@ -1609,6 +1612,14 @@ declare module "sap/tnt/NavigationListItem" {
      */
     destroyItems(): this;
     /**
+     * Destroys the tag in the aggregation {@link #getTag tag}.
+     *
+     * @since 1.149
+     *
+     * @returns Reference to `this` in order to allow method chaining
+     */
+    destroyTag(): this;
+    /**
      * Detaches event handler `fnFunction` from the {@link #event:select select} event of this `sap.tnt.NavigationListItem`.
      *
      * The passed function and listener object must match the ones used for event registration.
@@ -1654,13 +1665,12 @@ declare module "sap/tnt/NavigationListItem" {
     /**
      * Gets current value of property {@link #getDesign design}.
      *
-     * Specifies if the item has a special design. NOTE: If `design` is not `NavigationListItemDesign.Default`
-     * sub-items can't be added.
+     * Specifies if the item has a special design. **Note:** If the `design` property is not set to `NavigationListItemDesign.Default`,
+     * sub-items cannot be added.
      *
      * Default value is `Default`.
      *
      * @since 1.133.0
-     * @experimental Behavior might change.
      *
      * @returns Value of property `design`
      */
@@ -1679,6 +1689,8 @@ declare module "sap/tnt/NavigationListItem" {
      * Gets current value of property {@link #getIcon icon}.
      *
      * Specifies the icon for the item.
+     *
+     * **Note:** By design, icons on second-level (child) navigation items are not rendered.
      *
      * Default value is `empty string`.
      *
@@ -1710,12 +1722,41 @@ declare module "sap/tnt/NavigationListItem" {
      * Default value is `true`.
      *
      * @since 1.116
-     * @experimental As of version 1.116. Disclaimer: this property is in a beta state - incompatible API changes
-     * may be done before its official public release.
      *
      * @returns Value of property `selectable`
      */
     getSelectable(): boolean;
+    /**
+     * Gets content of aggregation {@link #getTag tag}.
+     *
+     * A tag that uses Indication states to visually mark a navigation item.
+     *
+     * Use tags to display status information, counters, or metadata that helps users quickly identify the state
+     * or importance of a navigation item.
+     *
+     * Tags can be added to:
+     * 	 - Single-click items without children
+     * 	 - Two-click items with children and expander arrow
+     * 	 - Child items nested under a parent item
+     *
+     * **Note:** Tags are visible when the `NavigationList` is in expanded mode, and hidden when collapsed,
+     * but they are visible in the overflow of the collapsed mode.
+     *
+     * Usage: Common use cases include:
+     * 	 - Status indicators: "Beta", "New", "Deprecated"
+     * 	 - Counters: "5 Pending", "12 Items"
+     * 	 - Versions: "v2.0"
+     * 	 - Alerts: "Low Stock", "Critical"
+     *
+     * **Important:** Always set the `inverted` property to `true` for consistent styling. Use Indication states
+     * (`Indication15` – `Indication20`) for consistent theming.
+     *
+     * **Important:** The `ObjectStatus` must never be interactive (i.e., `active` must not be set to `true`),
+     * as this would lead to nesting of interactive elements, which is not allowed.
+     *
+     * @since 1.149
+     */
+    getTag(): ObjectStatus;
     /**
      * Gets current value of property {@link #getTarget target}.
      *
@@ -1819,15 +1860,14 @@ declare module "sap/tnt/NavigationListItem" {
     /**
      * Sets a new value for property {@link #getDesign design}.
      *
-     * Specifies if the item has a special design. NOTE: If `design` is not `NavigationListItemDesign.Default`
-     * sub-items can't be added.
+     * Specifies if the item has a special design. **Note:** If the `design` property is not set to `NavigationListItemDesign.Default`,
+     * sub-items cannot be added.
      *
      * When called with a value of `null` or `undefined`, the default value of the property will be restored.
      *
      * Default value is `Default`.
      *
      * @since 1.133.0
-     * @experimental Behavior might change.
      *
      * @returns Reference to `this` in order to allow method chaining
      */
@@ -1858,6 +1898,8 @@ declare module "sap/tnt/NavigationListItem" {
      * Sets a new value for property {@link #getIcon icon}.
      *
      * Specifies the icon for the item.
+     *
+     * **Note:** By design, icons on second-level (child) navigation items are not rendered.
      *
      * When called with a value of `null` or `undefined`, the default value of the property will be restored.
      *
@@ -1892,8 +1934,6 @@ declare module "sap/tnt/NavigationListItem" {
      * Default value is `true`.
      *
      * @since 1.116
-     * @experimental As of version 1.116. Disclaimer: this property is in a beta state - incompatible API changes
-     * may be done before its official public release.
      *
      * @returns Reference to `this` in order to allow method chaining
      */
@@ -1902,6 +1942,19 @@ declare module "sap/tnt/NavigationListItem" {
        * New value for property `selectable`
        */
       bSelectable?: boolean
+    ): this;
+    /**
+     * Sets the aggregated {@link #getTag tag}.
+     *
+     * @since 1.149
+     *
+     * @returns Reference to `this` in order to allow method chaining
+     */
+    setTag(
+      /**
+       * The tag to set
+       */
+      oTag: ObjectStatus
     ): this;
     /**
      * Sets a new value for property {@link #getTarget target}.
@@ -1950,10 +2003,11 @@ declare module "sap/tnt/NavigationListItem" {
   /**
    * Describes the settings that can be provided to the NavigationListItem constructor.
    */
-  export interface $NavigationListItemSettings
-    extends $NavigationListItemBaseSettings {
+  export interface $NavigationListItemSettings extends $NavigationListItemBaseSettings {
     /**
      * Specifies the icon for the item.
+     *
+     * **Note:** By design, icons on second-level (child) navigation items are not rendered.
      */
     icon?: URI | PropertyBindingInfo | `{${string}}`;
 
@@ -1978,8 +2032,6 @@ declare module "sap/tnt/NavigationListItem" {
      * 	 - Items that trigger actions (with design "Action") should not be selectable.
      *
      * @since 1.116
-     * @experimental As of version 1.116. Disclaimer: this property is in a beta state - incompatible API changes
-     * may be done before its official public release.
      */
     selectable?: boolean | PropertyBindingInfo | `{${string}}`;
 
@@ -2003,11 +2055,10 @@ declare module "sap/tnt/NavigationListItem" {
     target?: string | PropertyBindingInfo;
 
     /**
-     * Specifies if the item has a special design. NOTE: If `design` is not `NavigationListItemDesign.Default`
-     * sub-items can't be added.
+     * Specifies if the item has a special design. **Note:** If the `design` property is not set to `NavigationListItemDesign.Default`,
+     * sub-items cannot be added.
      *
      * @since 1.133.0
-     * @experimental Behavior might change.
      */
     design?:
       | (NavigationListItemDesign | keyof typeof NavigationListItemDesign)
@@ -2032,6 +2083,36 @@ declare module "sap/tnt/NavigationListItem" {
       | NavigationListItem
       | AggregationBindingInfo
       | `{${string}}`;
+
+    /**
+     * A tag that uses Indication states to visually mark a navigation item.
+     *
+     * Use tags to display status information, counters, or metadata that helps users quickly identify the state
+     * or importance of a navigation item.
+     *
+     * Tags can be added to:
+     * 	 - Single-click items without children
+     * 	 - Two-click items with children and expander arrow
+     * 	 - Child items nested under a parent item
+     *
+     * **Note:** Tags are visible when the `NavigationList` is in expanded mode, and hidden when collapsed,
+     * but they are visible in the overflow of the collapsed mode.
+     *
+     * Usage: Common use cases include:
+     * 	 - Status indicators: "Beta", "New", "Deprecated"
+     * 	 - Counters: "5 Pending", "12 Items"
+     * 	 - Versions: "v2.0"
+     * 	 - Alerts: "Low Stock", "Critical"
+     *
+     * **Important:** Always set the `inverted` property to `true` for consistent styling. Use Indication states
+     * (`Indication15` – `Indication20`) for consistent theming.
+     *
+     * **Important:** The `ObjectStatus` must never be interactive (i.e., `active` must not be set to `true`),
+     * as this would lead to nesting of interactive elements, which is not allowed.
+     *
+     * @since 1.149
+     */
+    tag?: ObjectStatus;
 
     /**
      * Fired when this item is selected.
@@ -2706,7 +2787,6 @@ declare module "sap/tnt/SideNavigation" {
      * Default value is `Decorated`.
      *
      * @since 1.134
-     * @experimental As of version 1.134.
      *
      * @returns Value of property `design`
      */
@@ -2801,7 +2881,6 @@ declare module "sap/tnt/SideNavigation" {
      * Default value is `Decorated`.
      *
      * @since 1.134
-     * @experimental As of version 1.134.
      *
      * @returns Reference to `this` in order to allow method chaining
      */
@@ -2951,7 +3030,6 @@ declare module "sap/tnt/SideNavigation" {
      * to achieve a Side Navigation Overlay Mode.
      *
      * @since 1.134
-     * @experimental As of version 1.134.
      */
     design?:
       | (SideNavigationDesign | keyof typeof SideNavigationDesign)
@@ -3070,10 +3148,14 @@ declare module "sap/tnt/ToolHeader" {
    * 	 - If an app implements side navigation in addition to the tool header menu, the menu icon must be the
    *     first item on the left-hand side of the tool header.
    * 	 - The app menu and the side navigation must not have any dependencies and must work independently.
-   *      Horizon theme specifics: Only the following controls are supported: sap.m.Button, sap.m.Image,
-   *     sap.m.Title, sap.m.Text, sap.m.SearchField, sap.m.Avatar. Fiori 3 theme specifics: In Fiori 3 Default
-   *     theme the ToolHeader is with dark design unlike most of the other controls. This defines the usage of
-   *     limited controls inside it, which will result in good design combination.
+   *
+   * 	 - Not recommended: In accordance with the UX Consistency initiative, it is recommended to use the seamlessly
+   *     integrated UI5 Web Components' ui5-shellbar, as demonstrated in this UXC
+   *     integration sample app with UXC integration
+   *     sample source code.  Horizon theme specifics: Only the following controls are supported: sap.m.Button,
+   *     sap.m.Image, sap.m.Title, sap.m.Text, sap.m.SearchField, sap.m.Avatar. Fiori 3 theme specifics: In Fiori
+   *     3 Default theme the ToolHeader is with dark design unlike most of the other controls. This defines the
+   *     usage of limited controls inside it, which will result in good design combination.
    *  The ToolHeader stylizes the contained controls with the Shell color parameters, to match the dark design
    * requirement. However, that's not a dark theme.
    *
@@ -3258,8 +3340,7 @@ declare module "sap/tnt/ToolHeaderUtilitySeparator" {
   /**
    * Describes the settings that can be provided to the ToolHeaderUtilitySeparator constructor.
    */
-  export interface $ToolHeaderUtilitySeparatorSettings
-    extends $ControlSettings {}
+  export interface $ToolHeaderUtilitySeparatorSettings extends $ControlSettings {}
 }
 
 declare module "sap/tnt/ToolPage" {
@@ -3423,6 +3504,9 @@ declare module "sap/tnt/ToolPage" {
      * Gets current value of property {@link #getSideExpanded sideExpanded}.
      *
      * Indicates if the side menu is expanded. Overrides the `expanded` property of the `sideContent` aggregation.
+     * *Note:** By default, on mobile phone devices and small screens, the side content is collapsed to provide
+     * more space for the main content. On larger screens, excluding mobile phone devices, it is expanded. This
+     * behavior can be overridden by setting this property.
      *
      * Default value is `true`.
      *
@@ -3574,6 +3658,9 @@ declare module "sap/tnt/ToolPage" {
   export interface $ToolPageSettings extends $ControlSettings {
     /**
      * Indicates if the side menu is expanded. Overrides the `expanded` property of the `sideContent` aggregation.
+     * **Note:** By default, on mobile phone devices and small screens, the side content is collapsed to provide
+     * more space for the main content. On larger screens, excluding mobile phone devices, it is expanded. This
+     * behavior can be overridden by setting this property.
      */
     sideExpanded?: boolean | PropertyBindingInfo | `{${string}}`;
 

@@ -1,23 +1,42 @@
 import {
+    BuyCryptoPaymentMethod,
+    BuyListResponse,
     BuyProviderInfo,
     BuyTrade,
+    BuyTradeQuoteRequest,
     ConfirmExchangeTradeRequest,
     CreateTradeSignatureRequestExchange,
     CreateTradeSignatureRequestSell,
     CryptoId,
+    DomainEntity,
     ExchangeProviderInfo,
     ExchangeTrade,
+    ExchangeTradeQuoteRequest,
     ExchangeTradeSigned,
     InfoResponse,
+    SellCryptoPaymentMethod,
     SellFiatTrade,
     SellFiatTradeSigned,
+    SellListResponse,
     SellProviderInfo,
+    WatchExchangeTradeResponse,
     WatchSellTradeResponse,
 } from "invity-api";
 
 const bt: BuyTrade = {
     paymentMethodName: "TestPay",
     tags: ["noExternalAddress"],
+};
+
+const bqt: BuyTradeQuoteRequest = {
+    wantCrypto: true,
+    fiatAmount: 1000,
+    fiatStringAmount: "1000",
+    cryptoAmount: 0.3,
+    cryptoStringAmount: "0.3",
+    receiveAddress: "receiveAddress",
+    receiveCurrency: "bitcoin" as CryptoId,
+    fiatCurrency: "USD",
 };
 
 const et: ExchangeTrade = {
@@ -30,6 +49,17 @@ const et: ExchangeTrade = {
         data: {},
     },
     status: "SIGN_DATA",
+    error: "Invalid currency: unknowncoin not found",
+    errorDetails: {
+        origin: "partner",
+        externalCode: "-32602",
+        message: "Invalid currency: unknowncoin not found",
+        code: "invalid_pair",
+        pair: {
+            send: "unknowncoin",
+            receive: "ethereum",
+        },
+    },
 };
 
 const ets: ExchangeTradeSigned = {
@@ -56,6 +86,16 @@ const wstr: WatchSellTradeResponse = {
     cryptoStringAmount: "",
 };
 
+const wetrErr: WatchExchangeTradeResponse = {
+    error: "Invalid method",
+    errorDetails: {
+        origin: "partner",
+        externalCode: "-32601",
+        message: "Invalid method",
+        code: "unknown",
+    },
+};
+
 const providerInfo: BuyProviderInfo = {
     companyName: "Invity",
     brandName: "UAB Invity Finance",
@@ -65,7 +105,12 @@ const providerInfo: BuyProviderInfo = {
     tradedCoins: [],
     tradedFiatCurrencies: [],
     supportedCountries: [],
+    supportedSubdivisions: {},
+    disabledSubdivisions: {},
     paymentMethods: [],
+    statusUrl: "https://test-finance.invity.io/#status/{{paymentId}}",
+    supportUrl: "",
+    termsUrl: "https://invity.io/terms-of-use-invity-finance",
 };
 
 const infoResponse: InfoResponse = {
@@ -88,6 +133,14 @@ const infoResponse: InfoResponse = {
             },
         },
     },
+    config: {
+        btcSwapDummyData: {
+            opreturn: {
+                dataHex: "abcd1234",
+            },
+            feePercentage: 2,
+        },
+    },
 };
 
 const exchangeProviderInfo: ExchangeProviderInfo = {
@@ -104,7 +157,8 @@ const exchangeProviderInfo: ExchangeProviderInfo = {
     },
     statusUrl: "https://example.com/txs/{{orderId}}",
     kycUrl: "https://example.com/faq#kyc",
-    supportUrl: " https://support.example.com",
+    supportUrl: "https://support.example.com",
+    termsUrl: "https://example.com/legal/terms-of-use",
     kycPolicy: "KYC is required...",
     kycPolicyType: "KYC-norefund",
     isRefundRequired: false,
@@ -119,8 +173,11 @@ const sellProviderInfo: SellProviderInfo = {
     tradedCoins: ["bitcoin", "ethereum"] as CryptoId[],
     tradedFiatCurrencies: ["USD"],
     supportedCountries: ["US"],
+    supportedSubdivisions: { "US": ["WA"] },
+    disabledSubdivisions: {},
     statusUrl: "https://example.com/txs/{{orderId}}",
     supportUrl: " https://support.example.com",
+    termsUrl: "https://example.com/legal/terms-of-use",
     flow: "PAYMENT_GATE",
     isRefundAddressRequired: false,
     lockSendAmount: false,
@@ -154,9 +211,104 @@ const exchangeSignatureRequest: CreateTradeSignatureRequestExchange = {
     receiveSlip44: 2,
 };
 
-const exchangeTradeQuoteRequest: ConfirmExchangeTradeRequest = {
+const exchangeTradeRequest: ConfirmExchangeTradeRequest = {
     trade: et,
     receiveAddress: "receiveAddress",
     refundAddress: "refundAddress",
     approvalFlow: true,
 };
+
+const exchangeTradeQuoteRequest: ExchangeTradeQuoteRequest = {
+    send: "bitcoin" as CryptoId,
+    receive: "ethereum" as CryptoId,
+    sendStringAmount: "0.1",
+    fromAddress: "fromAddress",
+    receiveAddress: "receiveAddress",
+};
+
+const buyListResponse: BuyListResponse = {
+    country: "US",
+    subdivision: "WA",
+    suggestedFiatCurrency: "USD",
+    providers: [providerInfo],
+    defaultAmountsOfFiatCurrencies: {
+        usd: 1,
+        eur: 1,
+        gbp: 1,
+        aed: 1,
+        ars: 1,
+        aud: 1,
+        bdt: 1,
+        brl: 1,
+        cad: 1,
+        chf: 1,
+        clp: 1,
+        cny: 1,
+        czk: 1,
+        dkk: 1,
+        hkd: 1,
+        huf: 1,
+        idr: 1,
+        ils: 1,
+        inr: 1,
+        jpy: 1,
+        krw: 1,
+        kwd: 1,
+        lkr: 1,
+        mxn: 1,
+        myr: 1,
+        nok: 1,
+        nzd: 1,
+        php: 1,
+        pln: 1,
+        rub: 1,
+        sar: 1,
+        sek: 1,
+        sgd: 1,
+        thb: 1,
+        try: 1,
+        twd: 1,
+        vnd: 1,
+        zar: 1,
+        amd: 1,
+        azn: 1,
+        bgn: 1,
+        bhd: 1,
+        cop: 1,
+        crc: 1,
+        dop: 1,
+        dzd: 1,
+        egp: 1,
+        gel: 1,
+        ghs: 1,
+        isk: 1,
+        jod: 1,
+        kes: 1,
+        kzt: 1,
+        mad: 1,
+        ngn: 1,
+        omr: 1,
+        pen: 1,
+        qar: 1,
+        ron: 1,
+        tnd: 1,
+        tzs: 1,
+        uah: 1,
+        ugx: 1,
+        uyu: 1,
+        xaf: 1,
+        xof: 1,
+    },
+};
+
+const sellListResponse: SellListResponse = {
+    country: "US",
+    subdivision: "WA",
+    providers: [sellProviderInfo],
+};
+
+const buyPaymentMethod: BuyCryptoPaymentMethod = "blik";
+
+const sellPaymentMethod: SellCryptoPaymentMethod = "pix";
+
+const entity: DomainEntity = "partner";

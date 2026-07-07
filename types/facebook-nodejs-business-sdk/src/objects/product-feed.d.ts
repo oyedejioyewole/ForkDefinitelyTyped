@@ -68,6 +68,7 @@ export default class ProductFeed extends AbstractCrudObject {
         media_title: "MEDIA_TITLE";
         offer: "OFFER";
         products: "PRODUCTS";
+        product_ratings_and_reviews: "PRODUCT_RATINGS_AND_REVIEWS";
         transactable_items: "TRANSACTABLE_ITEMS";
         vehicles: "VEHICLES";
         vehicle_offer: "VEHICLE_OFFER";
@@ -109,6 +110,9 @@ export default class ProductFeed extends AbstractCrudObject {
         local: "LOCAL";
         smart_pixel_language_or_country: "SMART_PIXEL_LANGUAGE_OR_COUNTRY";
         version: "VERSION";
+    }>;
+    static get UseCase(): Readonly<{
+        creator_asset: "CREATOR_ASSET";
     }>;
     getAutomotiveModels(fields: string[], params?: Record<string, any>, fetchFirstPage?: boolean): Cursor | Promise<Cursor>;
     getDestinations(fields: string[], params?: Record<string, any>, fetchFirstPage?: boolean): Cursor | Promise<Cursor>;

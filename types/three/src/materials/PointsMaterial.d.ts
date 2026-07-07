@@ -14,6 +14,11 @@ export interface PointsMaterialProperties extends MaterialProperties {
      * with {@link Material#transparent} or {@link Material#alphaTest}. The texture map
      * color is modulated by the diffuse `color`.
      *
+     * `map` represents color data, and the texture must be assigned a
+     * {@link Texture#colorSpace}. Most `map` textures set
+     * `texture.colorSpace = SRGBColorSpace`.
+     *
+     * @type {?Texture}
      * @default null
      */
     map: Texture | null;
@@ -27,13 +32,17 @@ export interface PointsMaterialProperties extends MaterialProperties {
      * green in DXT-compressed and uncompressed RGB 565 formats. Luminance-only and
      * luminance/alpha textures will also still work as expected.
      *
+     * `alphaMap` represents non-color data. Any texture assigned must have
+     * `texture.colorSpace = NoColorSpace` (default).
+     *
+     * @type {?Texture}
      * @default null
      */
     alphaMap: Texture | null;
     /**
      * Defines the size of the points in pixels.
      *
-     * Might be capped if the value exceeds hardware dependent parameters like [gl.ALIASED_POINT_SIZE_RANGE]{@link https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/getParamete}.
+     * Might be capped if the value exceeds hardware dependent parameters like [gl.ALIASED_POINT_SIZE_RANGE](https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/getParamete).
      *
      * @default 1
      */
@@ -97,6 +106,7 @@ export class PointsMaterial extends Material {
      * @default true
      */
     readonly isPointsMaterial: boolean;
+    setValues(values?: PointsMaterialParameters): void;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface

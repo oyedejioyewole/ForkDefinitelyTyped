@@ -10,6 +10,7 @@ export default class UnifiedThread extends AbstractCrudObject {
         folder: "folder";
         former_participants: "former_participants";
         id: "id";
+        is_owner: "is_owner";
         is_subscribed: "is_subscribed";
         link: "link";
         linked_group: "linked_group";
@@ -19,7 +20,6 @@ export default class UnifiedThread extends AbstractCrudObject {
         scoped_thread_key: "scoped_thread_key";
         senders: "senders";
         snippet: "snippet";
-        subject: "subject";
         unread_count: "unread_count";
         updated_time: "updated_time";
         wallpaper: "wallpaper";

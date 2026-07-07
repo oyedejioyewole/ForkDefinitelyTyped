@@ -10,10 +10,13 @@ import ShadowIGMediaProductTags from "./shadow-ig-media-product-tags";
  */
 export default class IGMedia extends AbstractCrudObject {
     static get Fields(): Readonly<{
+        alt_text: "alt_text";
         boost_eligibility_info: "boost_eligibility_info";
         caption: "caption";
         comments_count: "comments_count";
         copyright_check_information: "copyright_check_information";
+        has_poll: "has_poll";
+        has_slider: "has_slider";
         id: "id";
         ig_id: "ig_id";
         is_comment_enabled: "is_comment_enabled";
@@ -29,6 +32,8 @@ export default class IGMedia extends AbstractCrudObject {
         thumbnail_url: "thumbnail_url";
         timestamp: "timestamp";
         username: "username";
+        video_title: "video_title";
+        view_count: "view_count";
     }>;
     getBoostAdsList(fields: string[], params?: Record<string, any>, fetchFirstPage?: boolean): Cursor | Promise<Cursor>;
     getBrandedContentPartnerPromote(fields: string[], params?: Record<string, any>, fetchFirstPage?: boolean): Cursor | Promise<Cursor>;
@@ -42,6 +47,7 @@ export default class IGMedia extends AbstractCrudObject {
     createPartnershipAdCode(fields: string[], params?: Record<string, any>, pathOverride?: string | null): Promise<AbstractObject>;
     getProductTags(fields: string[], params?: Record<string, any>, fetchFirstPage?: boolean): Cursor | Promise<Cursor>;
     createProductTag(fields: string[], params?: Record<string, any>, pathOverride?: string | null): Promise<ShadowIGMediaProductTags>;
+    delete(fields: string[], params?: Record<string, any>): Promise<AbstractObject>;
     get(fields: string[], params?: Record<string, any>): Promise<IGMedia>;
     update(fields: string[], params?: Record<string, any>): Promise<IGMedia>;
 }

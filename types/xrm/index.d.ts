@@ -1862,14 +1862,14 @@ declare namespace Xrm {
              * @param itemNameOrNumber The item name or item number to get.
              * @returns The T matching the key itemName or the T in the itemNumber-th place.
              */
-            get<TSubType extends T>(itemNameOrNumber: string | number): TSubType;
+            get(itemNameOrNumber: string | number): T | null;
 
             /**
              * Gets the item given by key or index.
              * @param itemNameOrNumber The item name or item number to get.
              * @returns The T matching the key itemName or the T in the itemNumber-th place.
              */
-            get(itemNameOrNumber: string | number): T | null;
+            get<TSubType extends T>(itemNameOrNumber: string | number): TSubType;
 
             /**
              * Gets the item using a delegate matching function or the entire array of T if delegate is not provided.
@@ -2919,7 +2919,7 @@ declare namespace Xrm {
              * @param value The enumeration value of the option desired.
              * @returns The option.
              */
-            getOption(value: number): OptionSetValue;
+            getOption(value: T): OptionSetValue;
 
             /**
              * Gets the option matching a label.
@@ -2954,7 +2954,7 @@ declare namespace Xrm {
              *              OptionSet attribute. Attributes on Quick Create Forms will not save values set
              *              with this method.
              */
-            setValue(value: number | null): void;
+            setValue(value: T | null): void;
 
             /**
              * A collection of all the controls on the form that interface with this attribute.
@@ -2985,7 +2985,7 @@ declare namespace Xrm {
              * @param value The enumeration value of the option desired.
              * @returns The option.
              */
-            getOption(value: number): OptionSetValue;
+            getOption(value: T): OptionSetValue;
 
             /**
              * Gets the option matching a label.
@@ -3020,13 +3020,13 @@ declare namespace Xrm {
              *              OptionSet attribute. Attributes on Quick Create Forms will not save values set
              *              with this method.
              */
-            setValue(value: number[] | null): void;
+            setValue(value: T[] | null): void;
 
             /**
              * A collection of all the controls on the form that interface with this attribute.
              * @see {@link https://docs.microsoft.com/en-us/dynamics365/customer-engagement/developer/clientapi/reference/collections External Link: Collections (Client API reference)}
              */
-            controls: Collection.ItemCollection<Controls.OptionSetControl>;
+            controls: Collection.ItemCollection<Controls.MultiSelectOptionSetControl>;
         }
 
         /**
@@ -3896,7 +3896,7 @@ declare namespace Xrm {
          * @remarks     An Iframe control provides additional methods, so use {@link IframeControl} where
          *              appropriate.  Silverlight controls should use {@link SilverlightControl}.
          */
-        interface FramedControl extends Control {
+        interface FramedControl extends Control, UiCanSetVisibleElement {
             /**
              * Returns the content window that represents an IFRAME or web resource.
              * @returns A promise that contains a content window instance representing an IFRAME or web resource.
@@ -4709,7 +4709,7 @@ declare namespace Xrm {
              * Returns a collection of steps in the stage.
              * @returns An array of Step.
              */
-            getSteps(): Step[];
+            getSteps(): Xrm.Collection.ItemCollection<Step>;
         }
 
         interface Step {
@@ -5336,7 +5336,7 @@ declare namespace Xrm {
             /**
              * The error code. If you just set errorCode, the message for the error code is automatically
              * retrieved from the server and displayed in the error dialog.
-             * If you specify an invalid errorCode value, an error dialog with a default error message is displyed.
+             * If you specify an invalid errorCode value, an error dialog with a default error message is displayed.
              */
             errorCode?: number | undefined;
             /**
@@ -5574,6 +5574,26 @@ declare namespace Xrm {
             dashboardId?: string | undefined;
         }
 
+        interface GenerativePage {
+            pageType: "generative";
+            /**
+             * The ID of the generative page to open.
+             */
+            pageId: string;
+            /**
+             * The GUID of a record to pass to the page.
+             */
+            recordId?: string | undefined;
+            /**
+             * The logical name of the Dataverse table corresponding to the recordId.
+             */
+            entityName?: string | undefined;
+            /**
+             * A JSON object containing additional custom parameters to pass to the page.
+             */
+            data?: { [index: string]: any } | undefined;
+        }
+
         /**
          * Options for navigating to a page: whether to open inline or in a dialog. If you don't specify this parameter, page is opened inline by default.
          */
@@ -5630,7 +5650,8 @@ declare namespace Xrm {
                 | Navigation.PageInputEntityList
                 | Navigation.CustomPage
                 | Navigation.PageInputHtmlWebResource
-                | Navigation.Dashboard,
+                | Navigation.Dashboard
+                | Navigation.GenerativePage,
             navigationOptions?: Navigation.NavigationOptions,
         ): Async.PromiseLike<any>;
 

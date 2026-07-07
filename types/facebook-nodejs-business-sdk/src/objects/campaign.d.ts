@@ -27,7 +27,10 @@ export default class Campaign extends AbstractCrudObject {
         effective_status: "effective_status";
         has_secondary_skadnetwork_reporting: "has_secondary_skadnetwork_reporting";
         id: "id";
+        is_adset_budget_sharing_enabled: "is_adset_budget_sharing_enabled";
         is_budget_schedule_enabled: "is_budget_schedule_enabled";
+        is_direct_send_campaign: "is_direct_send_campaign";
+        is_message_campaign: "is_message_campaign";
         is_skadnetwork_attribution: "is_skadnetwork_attribution";
         issues_info: "issues_info";
         last_budget_toggling_time: "last_budget_toggling_time";
@@ -141,6 +144,7 @@ export default class Campaign extends AbstractCrudObject {
         online_gambling_and_gaming: "ONLINE_GAMBLING_AND_GAMING";
     }>;
     static get SpecialAdCategoryCountry(): Readonly<{
+        ac: "AC";
         ad: "AD";
         ae: "AE";
         af: "AF";
@@ -416,6 +420,7 @@ export default class Campaign extends AbstractCrudObject {
     getAdRulesGoverned(fields: string[], params?: Record<string, any>, fetchFirstPage?: boolean): Cursor | Promise<Cursor>;
     getAds(fields: string[], params?: Record<string, any>, fetchFirstPage?: boolean): Cursor | Promise<Cursor>;
     getAdSets(fields: string[], params?: Record<string, any>, fetchFirstPage?: boolean): Cursor | Promise<Cursor>;
+    getBudgetSchedules(fields: string[], params?: Record<string, any>, fetchFirstPage?: boolean): Cursor | Promise<Cursor>;
     createBudgetSchedule(fields: string[], params?: Record<string, any>, pathOverride?: string | null): Promise<HighDemandPeriod>;
     getCopies(fields: string[], params?: Record<string, any>, fetchFirstPage?: boolean): Cursor | Promise<Cursor>;
     createCopy(fields: string[], params?: Record<string, any>, pathOverride?: string | null): Promise<Campaign>;

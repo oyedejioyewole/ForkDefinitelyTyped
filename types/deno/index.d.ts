@@ -1,4 +1,4 @@
-// Copyright 2018-2025 the Deno authors. MIT license.
+// Copyright 2018-2026 the Deno authors. MIT license.
 
 /** The global namespace where Deno specific, non-standard APIs are located. */
 declare namespace Deno {
@@ -92,7 +92,7 @@ declare namespace Deno {
          * @category Errors */
         export class AlreadyExists extends Error {}
         /**
-         * Raised when an operation to returns data that is invalid for the
+         * Raised when an operation returns data that is invalid for the
          * operation being performed.
          *
          * @category Errors */
@@ -106,7 +106,7 @@ declare namespace Deno {
         /**
          * Raised when the underlying operating system reports an `EINTR` error. In
          * many cases, this underlying IO error will be handled internally within
-         * Deno, or result in an @{link BadResource} error instead.
+         * Deno, or result in an {@link BadResource} error instead.
          *
          * @category Errors */
         export class Interrupted extends Error {}
@@ -717,6 +717,11 @@ declare namespace Deno {
      *
      * `fn` can be async if required.
      *
+     * Tests are discovered before they are executed, so registrations must happen
+     * at module load time.
+     * Nested `Deno.test()` calls are not supported.
+     * Use `t.step()` for nested tests.
+     *
      * ```ts
      * import { assertEquals } from "jsr:@std/assert";
      *
@@ -1024,6 +1029,78 @@ declare namespace Deno {
             options: Omit<TestDefinition, "fn" | "only">,
             fn: (t: TestContext) => void | Promise<void>,
         ): void;
+
+        /** Register a function to be called before all tests in the current scope.
+         *
+         * These functions are run in FIFO order (first in, first out).
+         *
+         * If an exception is raised during execution of this hook, the remaining `beforeAll` hooks will not be run.
+         *
+         * ```ts
+         * Deno.test.beforeAll(() => {
+         *   // Setup code that runs once before all tests
+         *   console.log("Setting up test suite");
+         * });
+         * ```
+         *
+         * @category Testing
+         */
+        beforeAll(
+            fn: () => void | Promise<void>,
+        ): void;
+
+        /** Register a function to be called before each test in the current scope.
+         *
+         * These functions are run in FIFO order (first in, first out).
+         *
+         * If an exception is raised during execution of this hook, the remaining hooks will not be run and the currently running
+         * test case will be marked as failed.
+         *
+         * ```ts
+         * Deno.test.beforeEach(() => {
+         *   // Setup code that runs before each test
+         *   console.log("Setting up test");
+         * });
+         * ```
+         *
+         * @category Testing
+         */
+        beforeEach(fn: () => void | Promise<void>): void;
+
+        /** Register a function to be called after each test in the current scope.
+         *
+         * These functions are run in LIFO order (last in, first out).
+         *
+         * If an exception is raised during execution of this hook, the remaining hooks will not be run and the currently running
+         * test case will be marked as failed.
+         *
+         * ```ts
+         * Deno.test.afterEach(() => {
+         *   // Cleanup code that runs after each test
+         *   console.log("Cleaning up test");
+         * });
+         * ```
+         *
+         * @category Testing
+         */
+        afterEach(fn: () => void | Promise<void>): void;
+
+        /** Register a function to be called after all tests in the current scope have finished running.
+         *
+         * These functions are run in the LIFO order (last in, first out).
+         *
+         * If an exception is raised during execution of this hook, the remaining `afterAll` hooks will not be run.
+         *
+         * ```ts
+         * Deno.test.afterAll(() => {
+         *   // Cleanup code that runs once after all tests
+         *   console.log("Cleaning up test suite");
+         * });
+         * ```
+         *
+         * @category Testing
+         */
+        afterAll(fn: () => void | Promise<void>): void;
     }
 
     /**
@@ -1358,6 +1435,22 @@ declare namespace Deno {
     /** An interface containing methods to interact with the process environment
      * variables.
      *
+     * Environment variables can also be loaded from a `.env` file by using the
+     * `--env-file` flag when running a Deno program:
+     *
+     * ```sh
+     * deno run --env-file=.env --allow-env main.ts
+     * ```
+     *
+     * If `--env-file` is specified without a value, it defaults to loading `.env`
+     * from the current working directory:
+     *
+     * ```sh
+     * deno run --env-file --allow-env main.ts
+     * ```
+     *
+     * Learn more at [the Deno docs](https://docs.deno.com/runtime/reference/env_variables/).
+     *
      * @tags allow-env
      * @category Runtime
      */
@@ -1368,7 +1461,7 @@ declare namespace Deno {
          *
          * ```ts
          * console.log(Deno.env.get("HOME"));  // e.g. outputs "/home/alice"
-         * console.log(Deno.env.get("MADE_UP_VAR"));  // outputs "undefined"
+         * console.log(Deno.env.get("MADE_UP_VAR"));  // outputs undefined
          * ```
          *
          * Requires `allow-env` permission.
@@ -1449,9 +1542,6 @@ declare namespace Deno {
      * console.log(Deno.execPath());  // e.g. "/home/alice/.local/bin/deno"
      * ```
      *
-     * Requires `allow-read` permission.
-     *
-     * @tags allow-read
      * @category Runtime
      */
     export function execPath(): string;
@@ -1489,9 +1579,6 @@ declare namespace Deno {
      *
      * Throws {@linkcode Deno.errors.NotFound} if directory not available.
      *
-     * Requires `allow-read` permission.
-     *
-     * @tags allow-read
      * @category Runtime
      */
     export function cwd(): string;
@@ -2015,6 +2102,26 @@ declare namespace Deno {
          */
         lockSync(exclusive?: boolean): void;
         /**
+         * Try to acquire an advisory file-system lock for the file. Returns `true`
+         * if the lock was acquired, `false` if the file is already locked.
+         *
+         * Unlike {@linkcode Deno.FsFile.lock}, this method will not block if the
+         * lock cannot be acquired.
+         *
+         * @param [exclusive=false]
+         */
+        tryLock(exclusive?: boolean): Promise<boolean>;
+        /**
+         * Synchronously try to acquire an advisory file-system lock for the file.
+         * Returns `true` if the lock was acquired, `false` if the file is already locked.
+         *
+         * Unlike {@linkcode Deno.FsFile.lockSync}, this method will not block if the
+         * lock cannot be acquired.
+         *
+         * @param [exclusive=false]
+         */
+        tryLockSync(exclusive?: boolean): boolean;
+        /**
          * Release an advisory file-system lock for the file.
          */
         unlock(): Promise<void>;
@@ -2390,7 +2497,8 @@ declare namespace Deno {
      * await Deno.mkdir("restricted_access_dir", { mode: 0o700 });
      * ```
      *
-     * Defaults to throwing error if the directory already exists.
+     * Throws if the directory already exists, unless `recursive` is set to
+     * `true`.
      *
      * Requires `allow-write` permission.
      *
@@ -2410,7 +2518,8 @@ declare namespace Deno {
      * Deno.mkdirSync("restricted_access_dir", { mode: 0o700 });
      * ```
      *
-     * Defaults to throwing error if the directory already exists.
+     * Throws if the directory already exists, unless `recursive` is set to
+     * `true`.
      *
      * Requires `allow-write` permission.
      *
@@ -2562,7 +2671,8 @@ declare namespace Deno {
      * | 1      | execute only |
      * | 0      | no permission |
      *
-     * NOTE: This API currently throws on Windows
+     * Note: On Windows, only the read and write permissions can be modified.
+     * Distinctions between owner, group, and others are not supported.
      *
      * Requires `allow-write` permission.
      *
@@ -2579,8 +2689,6 @@ declare namespace Deno {
      * ```
      *
      * For a full description, see {@linkcode Deno.chmod}.
-     *
-     * NOTE: This API currently throws on Windows
      *
      * Requires `allow-write` permission.
      *
@@ -2844,17 +2952,15 @@ declare namespace Deno {
         ctime: Date | null;
         /** ID of the device containing the file. */
         dev: number;
-        /** Inode number.
-         *
-         * _Linux/Mac OS only._ */
+        /** Corresponds to the inode number on Unix systems. On Windows, this is
+         * the file index number that is unique within a volume. This may not be
+         * available on all platforms. */
         ino: number | null;
         /** The underlying raw `st_mode` bits that contain the standard Unix
          * permissions for this file/directory.
          */
         mode: number | null;
-        /** Number of hard links pointing to this file.
-         *
-         * _Linux/Mac OS only._ */
+        /** Number of hard links pointing to this file. */
         nlink: number | null;
         /** User ID of the owner of this file.
          *
@@ -2872,9 +2978,7 @@ declare namespace Deno {
          *
          * _Linux/Mac OS only._ */
         blksize: number | null;
-        /** Number of blocks allocated to the file, in 512-byte units.
-         *
-         * _Linux/Mac OS only._ */
+        /** Number of blocks allocated to the file, in 512-byte units. */
         blocks: number | null;
         /**  True if this is info for a block device.
          *
@@ -3300,24 +3404,6 @@ declare namespace Deno {
      */
     export function truncateSync(name: string, len?: number): void;
 
-    /** @category Runtime
-     *
-     * @deprecated This will be removed in Deno 2.0.
-     */
-    export interface OpMetrics {
-        opsDispatched: number;
-        opsDispatchedSync: number;
-        opsDispatchedAsync: number;
-        opsDispatchedAsyncUnref: number;
-        opsCompleted: number;
-        opsCompletedSync: number;
-        opsCompletedAsync: number;
-        opsCompletedAsyncUnref: number;
-        bytesSentControl: number;
-        bytesSentData: number;
-        bytesReceived: number;
-    }
-
     /**
      * Additional information for FsEvent objects with the "other" kind.
      *
@@ -3468,8 +3554,8 @@ declare namespace Deno {
      * );
      * ```
      *
-     * _Note_: On Windows only `"SIGINT"` (CTRL+C) and `"SIGBREAK"` (CTRL+Break)
-     * are supported.
+     * _Note_: On Windows only `"SIGINT"` (CTRL+C), `"SIGBREAK"` (CTRL+Break),
+     * `"SIGTERM"`, `"SIGQUIT"`, `"SIGHUP"`, and `"SIGWINCH"` are supported.
      *
      * @category Runtime
      */
@@ -3486,8 +3572,8 @@ declare namespace Deno {
      * Deno.removeSignalListener("SIGTERM", listener);
      * ```
      *
-     * _Note_: On Windows only `"SIGINT"` (CTRL+C) and `"SIGBREAK"` (CTRL+Break)
-     * are supported.
+     * _Note_: On Windows only `"SIGINT"` (CTRL+C), `"SIGBREAK"` (CTRL+Break),
+     * `"SIGTERM"`, `"SIGQUIT"`, `"SIGHUP"`, and `"SIGWINCH"` are supported.
      *
      * @category Runtime
      */
@@ -3599,8 +3685,8 @@ declare namespace Deno {
      */
     export class ChildProcess implements AsyncDisposable {
         get stdin(): WritableStream<Uint8Array<ArrayBufferLike>>;
-        get stdout(): ReadableStream<Uint8Array<ArrayBuffer>>;
-        get stderr(): ReadableStream<Uint8Array<ArrayBuffer>>;
+        get stdout(): SubprocessReadableStream;
+        get stderr(): SubprocessReadableStream;
         readonly pid: number;
         /** Get the status of the child. */
         readonly status: Promise<CommandStatus>;
@@ -3608,13 +3694,13 @@ declare namespace Deno {
         /** Waits for the child to exit completely, returning all its output and
          * status. */
         output(): Promise<CommandOutput>;
-        /** Kills the process with given {@linkcode Deno.Signal}.
+        /** Kills the process with given {@linkcode Deno.Signal} or numeric signal.
          *
          * Defaults to `SIGTERM` if no signal is provided.
          *
          * @param [signo="SIGTERM"]
          */
-        kill(signo?: Signal): void;
+        kill(signo?: Signal | number): void;
 
         /** Ensure that the status of the child process prevents the Deno process
          * from exiting. */
@@ -3624,6 +3710,35 @@ declare namespace Deno {
         unref(): void;
 
         [Symbol.asyncDispose](): Promise<void>;
+    }
+
+    /**
+     * The interface for stdout and stderr streams for child process returned from
+     * {@linkcode Deno.Command.spawn}.
+     *
+     * @category Subprocess
+     */
+    export interface SubprocessReadableStream extends ReadableStream<Uint8Array<ArrayBuffer>> {
+        /**
+         * Reads the stream to completion. It returns a promise that resolves with
+         * an `ArrayBuffer`.
+         */
+        arrayBuffer(): Promise<ArrayBuffer>;
+        /**
+         * Reads the stream to completion. It returns a promise that resolves with
+         * a `Uint8Array`.
+         */
+        bytes(): Promise<Uint8Array<ArrayBuffer>>;
+        /**
+         * Reads the stream to completion. It returns a promise that resolves with
+         * the result of parsing the body text as JSON.
+         */
+        json(): Promise<any>;
+        /**
+         * Reads the stream to completion. It returns a promise that resolves with
+         * a `USVString` (text).
+         */
+        text(): Promise<string>;
     }
 
     /**
@@ -3688,6 +3803,20 @@ declare namespace Deno {
          *
          * @default {false} */
         windowsRawArguments?: boolean;
+
+        /** Whether to detach the spawned process from the current process.
+         * This allows the spawned process to continue running after the current
+         * process exits.
+         *
+         * Note: In order to allow the current process to exit, you need to ensure
+         * you call `unref()` on the child process.
+         *
+         * In addition, the stdio streams – if inherited or piped – may keep the
+         * current process from exiting until the streams are closed.
+         *
+         * @default {false}
+         */
+        detached?: boolean;
     }
 
     /**
@@ -3716,6 +3845,168 @@ declare namespace Deno {
         /** The buffered output from the child process' `stderr`. */
         readonly stderr: Uint8Array<ArrayBuffer>;
     }
+
+    /** Spawns a new subprocess, returning a {@linkcode Deno.ChildProcess} handle.
+     *
+     * @experimental **UNSTABLE**: New API, yet to be vetted.
+     *
+     * This is a shorthand for `new Deno.Command(command, options).spawn()`.
+     *
+     * By default, `stdin`, `stdout`, and `stderr` are set to `"inherit"`.
+     *
+     * @example Spawn a subprocess
+     *
+     * ```ts
+     * const child = Deno.spawn(Deno.execPath(), {
+     *   args: ["eval", "console.log('hello')"],
+     *   stdout: "piped",
+     * });
+     * const output = await child.stdout.text();
+     * console.log(output); // "hello\n"
+     * const status = await child.status;
+     * ```
+     *
+     * @tags allow-run
+     * @category Subprocess
+     */
+    export function spawn(
+        command: string | URL,
+        options?: CommandOptions,
+    ): ChildProcess;
+    /** Spawns a new subprocess with the given arguments, returning a
+     * {@linkcode Deno.ChildProcess} handle.
+     *
+     * @experimental **UNSTABLE**: New API, yet to be vetted.
+     *
+     * This is a shorthand for `new Deno.Command(command, { ...options, args }).spawn()`.
+     *
+     * By default, `stdin`, `stdout`, and `stderr` are set to `"inherit"`.
+     *
+     * @example Spawn a subprocess with args
+     *
+     * ```ts
+     * const child = Deno.spawn(Deno.execPath(), ["eval", "console.log('hello')"], {
+     *   stdout: "piped",
+     * });
+     * const output = await child.stdout.text();
+     * console.log(output); // "hello\n"
+     * const status = await child.status;
+     * ```
+     *
+     * @tags allow-run
+     * @category Subprocess
+     */
+    export function spawn(
+        command: string | URL,
+        args: string[],
+        options?: Omit<CommandOptions, "args">,
+    ): ChildProcess;
+
+    /** Spawns a subprocess, waits for it to finish, and returns the output.
+     *
+     * @experimental **UNSTABLE**: New API, yet to be vetted.
+     *
+     * This is a shorthand for `new Deno.Command(command, options).output()`.
+     *
+     * Will throw an error if `stdin: "piped"` is set.
+     *
+     * @example Spawn and wait for output
+     *
+     * ```ts
+     * const { code, stdout, stderr } = await Deno.spawnAndWait(Deno.execPath(), {
+     *   args: ["eval", "console.log('hello')"],
+     * });
+     * console.log(new TextDecoder().decode(stdout)); // "hello\n"
+     * ```
+     *
+     * @tags allow-run
+     * @category Subprocess
+     */
+    export function spawnAndWait(
+        command: string | URL,
+        options?: CommandOptions,
+    ): Promise<CommandOutput>;
+    /** Spawns a subprocess with the given arguments, waits for it to finish,
+     * and returns the output.
+     *
+     * @experimental **UNSTABLE**: New API, yet to be vetted.
+     *
+     * This is a shorthand for `new Deno.Command(command, { ...options, args }).output()`.
+     *
+     * Will throw an error if `stdin: "piped"` is set.
+     *
+     * @example Spawn and wait with args
+     *
+     * ```ts
+     * const { code, stdout } = await Deno.spawnAndWait(
+     *   Deno.execPath(),
+     *   ["eval", "console.log('hello')"],
+     * );
+     * console.log(new TextDecoder().decode(stdout)); // "hello\n"
+     * ```
+     *
+     * @tags allow-run
+     * @category Subprocess
+     */
+    export function spawnAndWait(
+        command: string | URL,
+        args: string[],
+        options?: Omit<CommandOptions, "args">,
+    ): Promise<CommandOutput>;
+
+    /** Synchronously spawns a subprocess, waits for it to finish, and returns
+     * the output.
+     *
+     * @experimental **UNSTABLE**: New API, yet to be vetted.
+     *
+     * This is a shorthand for `new Deno.Command(command, options).outputSync()`.
+     *
+     * Will throw an error if `stdin: "piped"` is set.
+     *
+     * @example Spawn and wait synchronously
+     *
+     * ```ts
+     * const { code, stdout } = Deno.spawnAndWaitSync(Deno.execPath(), {
+     *   args: ["eval", "console.log('hello')"],
+     * });
+     * console.log(new TextDecoder().decode(stdout)); // "hello\n"
+     * ```
+     *
+     * @tags allow-run
+     * @category Subprocess
+     */
+    export function spawnAndWaitSync(
+        command: string | URL,
+        options?: CommandOptions,
+    ): CommandOutput;
+    /** Synchronously spawns a subprocess with the given arguments, waits for it
+     * to finish, and returns the output.
+     *
+     * @experimental **UNSTABLE**: New API, yet to be vetted.
+     *
+     * This is a shorthand for
+     * `new Deno.Command(command, { ...options, args }).outputSync()`.
+     *
+     * Will throw an error if `stdin: "piped"` is set.
+     *
+     * @example Spawn and wait synchronously with args
+     *
+     * ```ts
+     * const { code, stdout } = Deno.spawnAndWaitSync(
+     *   Deno.execPath(),
+     *   ["eval", "console.log('hello')"],
+     * );
+     * console.log(new TextDecoder().decode(stdout)); // "hello\n"
+     * ```
+     *
+     * @tags allow-run
+     * @category Subprocess
+     */
+    export function spawnAndWaitSync(
+        command: string | URL,
+        args: string[],
+        options?: Omit<CommandOptions, "args">,
+    ): CommandOutput;
 
     /** Option which can be specified when performing {@linkcode Deno.inspect}.
      *
@@ -3948,6 +4239,21 @@ declare namespace Deno {
         path?: string | URL;
     }
 
+    /** The permission descriptor for the `allow-import` and `deny-import` permissions, which controls
+     * access to importing from remote hosts via the network. The option `host` allows scoping the
+     * permission for outbound connection to a specific host and port.
+     *
+     * @category Permissions */
+    export interface ImportPermissionDescriptor {
+        name: "import";
+        /** Optional host string of the form `"<hostname>[:<port>]"`. Examples:
+         *
+         *      "github.com"
+         *      "deno.land:8080"
+         */
+        host?: string;
+    }
+
     /** Permission descriptors which define a permission and can be queried,
      * requested, or revoked.
      *
@@ -3963,7 +4269,8 @@ declare namespace Deno {
         | NetPermissionDescriptor
         | EnvPermissionDescriptor
         | SysPermissionDescriptor
-        | FfiPermissionDescriptor;
+        | FfiPermissionDescriptor
+        | ImportPermissionDescriptor;
 
     /** The interface which defines what event types are supported by
      * {@linkcode PermissionStatus} instances.
@@ -4263,13 +4570,13 @@ declare namespace Deno {
      * Give the following command line invocation of Deno:
      *
      * ```sh
-     * deno run --allow-read https://examples.deno.land/command-line-arguments.ts Sushi
+     * deno eval "console.log(Deno.args)" Sushi Maguro Hamachi
      * ```
      *
      * Then `Deno.args` will contain:
      *
      * ```ts
-     * [ "Sushi" ]
+     * [ "Sushi", "Maguro", "Hamachi" ]
      * ```
      *
      * If you are looking for a structured way to parse arguments, there is
@@ -4491,12 +4798,14 @@ declare namespace Deno {
      * Deno.kill(child.pid, "SIGINT");
      * ```
      *
+     * As a special case, a signal of 0 can be used to test for the existence of a process.
+     *
      * Requires `allow-run` permission.
      *
      * @tags allow-run
      * @category Subprocess
      */
-    export function kill(pid: number, signo?: Signal): void;
+    export function kill(pid: number, signo?: Signal | number): void;
 
     /** The type of the resource record to resolve via DNS using
      * {@linkcode Deno.resolveDns}.
@@ -4955,6 +5264,12 @@ declare namespace Deno {
          * @category HTTP Server
          */
         fetch: ServeHandler;
+        /**
+         * The callback which is called when the server starts listening.
+         *
+         * @category HTTP Server
+         */
+        onListen?: (localAddr: Deno.Addr) => void;
     }
 
     /** Options which can be set when calling {@linkcode Deno.serve}.
@@ -5001,6 +5316,18 @@ declare namespace Deno {
 
         /** Sets `SO_REUSEPORT` on POSIX systems. */
         reusePort?: boolean;
+
+        /** Maximum number of pending connections in the listen queue.
+         *
+         * This parameter controls how many incoming connections can be queued by the
+         * operating system while waiting for the application to accept them. If more
+         * connections arrive when the queue is full, they will be refused.
+         *
+         * The kernel may adjust this value (e.g., rounding up to the next power of 2
+         * plus 1). Different operating systems have different maximum limits.
+         *
+         * @default {511} */
+        tcpBacklog?: number;
     }
 
     /**
@@ -5522,7 +5849,7 @@ declare namespace Deno {
      *
      * @category FFI
      */
-    export type FromNativeType<T extends NativeType = NativeType> = T extends NativeStructType ? Uint8Array
+    export type FromNativeType<T extends NativeType = NativeType> = T extends NativeStructType ? Uint8Array<ArrayBuffer>
         : T extends NativeNumberType ? T extends NativeU8Enum<infer U> ? U
             : T extends NativeI8Enum<infer U> ? U
             : T extends NativeU16Enum<infer U> ? U
@@ -5545,7 +5872,7 @@ declare namespace Deno {
      */
     export type FromNativeResultType<
         T extends NativeResultType = NativeResultType,
-    > = T extends NativeStructType ? Uint8Array
+    > = T extends NativeStructType ? Uint8Array<ArrayBuffer>
         : T extends NativeNumberType ? T extends NativeU8Enum<infer U> ? U
             : T extends NativeI8Enum<infer U> ? U
             : T extends NativeU16Enum<infer U> ? U
@@ -5756,11 +6083,17 @@ declare namespace Deno {
         getFloat64(offset?: number): number;
         /** Gets a pointer at the specified byte offset from the pointer */
         getPointer<T = unknown>(offset?: number): PointerValue<T>;
-        /** Gets a C string (`null` terminated string) at the specified byte offset
-         * from the pointer. */
+        /** Gets a UTF-8 encoded string at the specified byte offset until 0 byte.
+         *
+         * Returned string doesn't include U+0000 character.
+         *
+         * Invalid UTF-8 characters are replaced with U+FFFD character in the returned string. */
         getCString(offset?: number): string;
-        /** Gets a C string (`null` terminated string) at the specified byte offset
-         * from the specified pointer. */
+        /** Gets a UTF-8 encoded string at the specified byte offset from the specified pointer until 0 byte.
+         *
+         * Returned string doesn't include U+0000 character.
+         *
+         * Invalid UTF-8 characters are replaced with U+FFFD character in the returned string. */
         static getCString(pointer: PointerObject, offset?: number): string;
         /** Gets an `ArrayBuffer` of length `byteLength` at the specified byte
          * offset from the pointer. */
@@ -6030,7 +6363,7 @@ declare namespace Deno {
          *
          * Must be in PEM format. */
         caCerts?: string[];
-        /** A HTTP proxy to use for new connections. */
+        /** An alternative transport (a proxy) to use for new connections. */
         proxy?: Proxy;
         /** Sets the maximum number of idle connections per host allowed in the pool. */
         poolMaxIdlePerHost?: number;
@@ -6058,17 +6391,53 @@ declare namespace Deno {
     }
 
     /**
-     * The definition of a proxy when specifying
+     * The definition for alternative transports (or proxies) in
      * {@linkcode Deno.CreateHttpClientOptions}.
+     *
+     * Supported proxies:
+     *  - HTTP/HTTPS proxy: this uses passthrough to tunnel HTTP requests, or HTTP
+     *    CONNECT to tunnel HTTPS requests through a different server.
+     *  - SOCKS5 proxy: this uses the SOCKS5 protocol to tunnel TCP connections
+     *    through a different server.
+     *  - TCP socket: this sends all requests to a specified TCP socket.
+     *  - Unix domain socket: this sends all requests to a local Unix domain
+     *    socket rather than a TCP socket. *Not supported on Windows.*
+     *  - Vsock socket: this sends all requests to a local vsock socket.
+     *    *Only supported on Linux and macOS.*
      *
      * @category Fetch
      */
-    export interface Proxy {
-        /** The string URL of the proxy server to use. */
+    export type Proxy = {
+        transport?: "http" | "https" | "socks5";
+        /**
+         * The string URL of the proxy server to use.
+         *
+         * For `http` and `https` transports, the URL must start with `http://` or
+         * `https://` respectively, or be a plain hostname.
+         *
+         * For `socks` transport, the URL must start with `socks5://` or
+         * `socks5h://`.
+         */
         url: string;
         /** The basic auth credentials to be used against the proxy server. */
         basicAuth?: BasicAuth;
-    }
+    } | {
+        transport: "tcp";
+        /** The hostname of the TCP server to connect to. */
+        hostname: string;
+        /** The port of the TCP server to connect to. */
+        port: number;
+    } | {
+        transport: "unix";
+        /** The path to the unix domain socket to use. */
+        path: string;
+    } | {
+        transport: "vsock";
+        /** The CID (Context Identifier) of the vsock to connect to. */
+        cid: number;
+        /** The port of the vsock to connect to. */
+        port: number;
+    };
 
     /**
      * Basic authentication credentials to be used with a {@linkcode Deno.Proxy}
@@ -6120,1672 +6489,90 @@ declare namespace Deno {
             | (CreateHttpClientOptions & TlsCertifiedKeyPem),
     ): HttpClient;
 
-    export {}; // only export exports
-}
-
-/** @category GPU */
-interface GPUObjectBase {
-    label: string;
-}
-
-/** @category GPU */
-interface GPUObjectDescriptorBase {
-    label?: string;
-}
-
-/** @category GPU */
-declare class GPUSupportedLimits {
-    readonly maxTextureDimension1D: number;
-    readonly maxTextureDimension2D: number;
-    readonly maxTextureDimension3D: number;
-    readonly maxTextureArrayLayers: number;
-    readonly maxBindGroups: number;
-    // TODO(@crowlKats): support max_bind_groups_plus_vertex_buffers
-    readonly maxBindGroupsPlusVertexBuffers?: number;
-    readonly maxBindingsPerBindGroup: number;
-    readonly maxDynamicUniformBuffersPerPipelineLayout: number;
-    readonly maxDynamicStorageBuffersPerPipelineLayout: number;
-    readonly maxSampledTexturesPerShaderStage: number;
-    readonly maxSamplersPerShaderStage: number;
-    readonly maxStorageBuffersPerShaderStage: number;
-    readonly maxStorageTexturesPerShaderStage: number;
-    readonly maxUniformBuffersPerShaderStage: number;
-    readonly maxUniformBufferBindingSize: number;
-    readonly maxStorageBufferBindingSize: number;
-    readonly minUniformBufferOffsetAlignment: number;
-    readonly minStorageBufferOffsetAlignment: number;
-    readonly maxVertexBuffers: number;
-    readonly maxBufferSize: number;
-    readonly maxVertexAttributes: number;
-    readonly maxVertexBufferArrayStride: number;
-    // TODO(@crowlKats): support max_inter_stage_shader_variables
-    readonly maxInterStageShaderVariables?: number;
-    readonly maxColorAttachments: number;
-    readonly maxColorAttachmentBytesPerSample: number;
-    readonly maxComputeWorkgroupStorageSize: number;
-    readonly maxComputeInvocationsPerWorkgroup: number;
-    readonly maxComputeWorkgroupSizeX: number;
-    readonly maxComputeWorkgroupSizeY: number;
-    readonly maxComputeWorkgroupSizeZ: number;
-    readonly maxComputeWorkgroupsPerDimension: number;
-}
-
-/** @category GPU */
-declare class GPUSupportedFeatures {
-    forEach(
-        callbackfn: (
-            value: GPUFeatureName,
-            value2: GPUFeatureName,
-            set: Set<GPUFeatureName>,
-        ) => void,
-        thisArg?: any,
-    ): void;
-    has(value: GPUFeatureName): boolean;
-    size: number;
-    [Symbol.iterator](): IterableIterator<GPUFeatureName>;
-    entries(): IterableIterator<[GPUFeatureName, GPUFeatureName]>;
-    keys(): IterableIterator<GPUFeatureName>;
-    values(): IterableIterator<GPUFeatureName>;
-}
-
-/** @category GPU */
-declare class GPUAdapterInfo {
-    readonly vendor: string;
-    readonly architecture: string;
-    readonly device: string;
-    readonly description: string;
-    readonly subgroupMinSize: number;
-    readonly subgroupMaxSize: number;
-    readonly isFallbackAdapter: boolean;
-}
-
-/**
- * The entry point to WebGPU in Deno, accessed via the global navigator.gpu property.
- *
- * @example
- * ```ts
- * // Basic WebGPU initialization in Deno
- * const gpu = navigator.gpu;
- * if (!gpu) {
- *   console.error("WebGPU not supported in this Deno environment");
- *   Deno.exit(1);
- * }
- *
- * // Request an adapter (physical GPU device)
- * const adapter = await gpu.requestAdapter();
- * if (!adapter) {
- *   console.error("Couldn't request WebGPU adapter");
- *   Deno.exit(1);
- * }
- *
- * // Get the preferred format for canvas rendering
- * // Useful when working with canvas in browser/Deno environments
- * const preferredFormat = gpu.getPreferredCanvasFormat();
- * console.log(`Preferred canvas format: ${preferredFormat}`);
- *
- * // Create a device with default settings
- * const device = await adapter.requestDevice();
- * console.log("WebGPU device created successfully");
- * ```
- *
- * @category GPU
- */
-declare class GPU {
-    requestAdapter(
-        options?: GPURequestAdapterOptions,
-    ): Promise<GPUAdapter | null>;
-    getPreferredCanvasFormat(): GPUTextureFormat;
-}
-
-/** @category GPU */
-interface GPURequestAdapterOptions {
-    powerPreference?: GPUPowerPreference;
-    forceFallbackAdapter?: boolean;
-}
-
-/** @category GPU */
-type GPUPowerPreference = "low-power" | "high-performance";
-
-/**
- * Represents a physical GPU device that can be used to create a logical GPU device.
- *
- * @example
- * ```ts
- * // Request an adapter with specific power preference
- * const adapter = await navigator.gpu.requestAdapter({
- *   powerPreference: "high-performance"
- * });
- *
- * if (!adapter) {
- *   console.error("WebGPU not supported or no appropriate adapter found");
- *   Deno.exit(1);
- * }
- *
- * // Check adapter capabilities
- * if (adapter.features.has("shader-f16")) {
- *   console.log("Adapter supports 16-bit shader operations");
- * }
- *
- * console.log(`Maximum buffer size: ${adapter.limits.maxBufferSize} bytes`);
- *
- * // Get adapter info (vendor, device, etc.)
- * console.log(`GPU Vendor: ${adapter.info.vendor}`);
- * console.log(`GPU Device: ${adapter.info.device}`);
- *
- * // Request a logical device with specific features and limits
- * const device = await adapter.requestDevice({
- *   requiredFeatures: ["shader-f16"],
- *   requiredLimits: {
- *     maxStorageBufferBindingSize: 128 * 1024 * 1024, // 128MB
- *   }
- * });
- * ```
- *
- * @category GPU
- */
-declare class GPUAdapter {
-    readonly features: GPUSupportedFeatures;
-    readonly limits: GPUSupportedLimits;
-    readonly info: GPUAdapterInfo;
-
-    requestDevice(descriptor?: GPUDeviceDescriptor): Promise<GPUDevice>;
-}
-
-/** @category GPU */
-interface GPUDeviceDescriptor extends GPUObjectDescriptorBase {
-    requiredFeatures?: GPUFeatureName[];
-    requiredLimits?: Record<string, number | undefined>;
-}
-
-/** @category GPU */
-type GPUFeatureName =
-    | "depth-clip-control"
-    | "timestamp-query"
-    | "indirect-first-instance"
-    | "shader-f16"
-    | "depth32float-stencil8"
-    | "texture-compression-bc"
-    | "texture-compression-bc-sliced-3d"
-    | "texture-compression-etc2"
-    | "texture-compression-astc"
-    | "rg11b10ufloat-renderable"
-    | "bgra8unorm-storage"
-    | "float32-filterable"
-    | "dual-source-blending"
-    | "subgroups"
-    // extended from spec
-    | "texture-format-16-bit-norm"
-    | "texture-compression-astc-hdr"
-    | "texture-adapter-specific-format-features"
-    | "pipeline-statistics-query"
-    | "timestamp-query-inside-passes"
-    | "mappable-primary-buffers"
-    | "texture-binding-array"
-    | "buffer-binding-array"
-    | "storage-resource-binding-array"
-    | "sampled-texture-and-storage-buffer-array-non-uniform-indexing"
-    | "uniform-buffer-and-storage-texture-array-non-uniform-indexing"
-    | "partially-bound-binding-array"
-    | "multi-draw-indirect"
-    | "multi-draw-indirect-count"
-    | "push-constants"
-    | "address-mode-clamp-to-zero"
-    | "address-mode-clamp-to-border"
-    | "polygon-mode-line"
-    | "polygon-mode-point"
-    | "conservative-rasterization"
-    | "vertex-writable-storage"
-    | "clear-texture"
-    | "spirv-shader-passthrough"
-    | "multiview"
-    | "vertex-attribute-64-bit"
-    | "shader-f64"
-    | "shader-i16"
-    | "shader-primitive-index"
-    | "shader-early-depth-test";
-
-/**
- * The primary interface for interacting with a WebGPU device.
- *
- * @example
- * ```ts
- * // Request a GPU adapter from the browser/Deno
- * const adapter = await navigator.gpu.requestAdapter();
- * if (!adapter) throw new Error("WebGPU not supported");
- *
- * // Request a device from the adapter
- * const device = await adapter.requestDevice();
- *
- * // Create a buffer on the GPU
- * const buffer = device.createBuffer({
- *   size: 128,
- *   usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
- * });
- *
- * // Use device.queue to submit commands
- * device.queue.writeBuffer(buffer, 0, new Uint8Array([1, 2, 3, 4]));
- * ```
- *
- * @category GPU
- */
-declare class GPUDevice extends EventTarget implements GPUObjectBase {
-    label: string;
-
-    readonly lost: Promise<GPUDeviceLostInfo>;
-    pushErrorScope(filter: GPUErrorFilter): undefined;
-    popErrorScope(): Promise<GPUError | null>;
-
-    readonly features: GPUSupportedFeatures;
-    readonly limits: GPUSupportedLimits;
-    readonly adapterInfo: GPUAdapterInfo;
-    readonly queue: GPUQueue;
-
-    destroy(): undefined;
-
-    createBuffer(descriptor: GPUBufferDescriptor): GPUBuffer;
-    createTexture(descriptor: GPUTextureDescriptor): GPUTexture;
-    createSampler(descriptor?: GPUSamplerDescriptor): GPUSampler;
-
-    createBindGroupLayout(
-        descriptor: GPUBindGroupLayoutDescriptor,
-    ): GPUBindGroupLayout;
-    createPipelineLayout(
-        descriptor: GPUPipelineLayoutDescriptor,
-    ): GPUPipelineLayout;
-    createBindGroup(descriptor: GPUBindGroupDescriptor): GPUBindGroup;
-
-    createShaderModule(descriptor: GPUShaderModuleDescriptor): GPUShaderModule;
-    createComputePipeline(
-        descriptor: GPUComputePipelineDescriptor,
-    ): GPUComputePipeline;
-    createRenderPipeline(
-        descriptor: GPURenderPipelineDescriptor,
-    ): GPURenderPipeline;
-    createComputePipelineAsync(
-        descriptor: GPUComputePipelineDescriptor,
-    ): Promise<GPUComputePipeline>;
-    createRenderPipelineAsync(
-        descriptor: GPURenderPipelineDescriptor,
-    ): Promise<GPURenderPipeline>;
-
-    createCommandEncoder(
-        descriptor?: GPUCommandEncoderDescriptor,
-    ): GPUCommandEncoder;
-    createRenderBundleEncoder(
-        descriptor: GPURenderBundleEncoderDescriptor,
-    ): GPURenderBundleEncoder;
-
-    createQuerySet(descriptor: GPUQuerySetDescriptor): GPUQuerySet;
-}
-
-/**
- * Represents a block of memory allocated on the GPU.
- *
- * @example
- * ```ts
- * // Create a buffer that can be used as a vertex buffer and can be written to
- * const vertexBuffer = device.createBuffer({
- *   label: "Vertex Buffer",
- *   size: vertices.byteLength,
- *   usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
- * });
- *
- * // Write data to the buffer
- * device.queue.writeBuffer(vertexBuffer, 0, vertices);
- *
- * // Example of creating a mapped buffer for CPU access
- * const stagingBuffer = device.createBuffer({
- *   size: data.byteLength,
- *   usage: GPUBufferUsage.MAP_WRITE | GPUBufferUsage.COPY_SRC,
- *   mappedAtCreation: true,
- * });
- *
- * // Copy data to the mapped buffer
- * new Uint8Array(stagingBuffer.getMappedRange()).set(data);
- * stagingBuffer.unmap();
- * ```
- *
- * @category GPU
- */
-declare class GPUBuffer implements GPUObjectBase {
-    label: string;
-
-    readonly size: number;
-    readonly usage: GPUFlagsConstant;
-    readonly mapState: GPUBufferMapState;
-
-    mapAsync(
-        mode: GPUMapModeFlags,
-        offset?: number,
-        size?: number,
-    ): Promise<undefined>;
-    getMappedRange(offset?: number, size?: number): ArrayBuffer;
-    unmap(): undefined;
-
-    destroy(): undefined;
-}
-
-/** @category GPU */
-type GPUBufferMapState = "unmapped" | "pending" | "mapped";
-
-/** @category GPU */
-interface GPUBufferDescriptor extends GPUObjectDescriptorBase {
-    size: number;
-    usage: GPUBufferUsageFlags;
-    mappedAtCreation?: boolean;
-}
-
-/** @category GPU */
-type GPUBufferUsageFlags = number;
-
-/** @category GPU */
-type GPUFlagsConstant = number;
-
-/** @category GPU */
-declare class GPUBufferUsage {
-    static MAP_READ: 0x0001;
-    static MAP_WRITE: 0x0002;
-    static COPY_SRC: 0x0004;
-    static COPY_DST: 0x0008;
-    static INDEX: 0x0010;
-    static VERTEX: 0x0020;
-    static UNIFORM: 0x0040;
-    static STORAGE: 0x0080;
-    static INDIRECT: 0x0100;
-    static QUERY_RESOLVE: 0x0200;
-}
-
-/** @category GPU */
-type GPUMapModeFlags = number;
-
-/** @category GPU */
-declare class GPUMapMode {
-    static READ: 0x0001;
-    static WRITE: 0x0002;
-}
-
-/**
- * Represents a texture (image) in GPU memory.
- *
- * @example
- * ```ts
- * // Create a texture to render to
- * const texture = device.createTexture({
- *   label: "Output Texture",
- *   size: { width: 640, height: 480 },
- *   format: "rgba8unorm",
- *   usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
- * });
- *
- * // Get a view of the texture (needed for most operations)
- * const textureView = texture.createView();
- *
- * // When the texture is no longer needed
- * texture.destroy();
- *
- * // Example: Creating a depth texture
- * const depthTexture = device.createTexture({
- *   size: { width: 640, height: 480 },
- *   format: "depth24plus",
- *   usage: GPUTextureUsage.RENDER_ATTACHMENT,
- * });
- * ```
- *
- * @category GPU
- */
-declare class GPUTexture implements GPUObjectBase {
-    label: string;
-
-    createView(descriptor?: GPUTextureViewDescriptor): GPUTextureView;
-    destroy(): undefined;
-
-    readonly width: number;
-    readonly height: number;
-    readonly depthOrArrayLayers: number;
-    readonly mipLevelCount: number;
-    readonly sampleCount: number;
-    readonly dimension: GPUTextureDimension;
-    readonly format: GPUTextureFormat;
-    readonly usage: GPUFlagsConstant;
-}
-
-/** @category GPU */
-interface GPUTextureDescriptor extends GPUObjectDescriptorBase {
-    size: GPUExtent3D;
-    mipLevelCount?: number;
-    sampleCount?: number;
-    dimension?: GPUTextureDimension;
-    format: GPUTextureFormat;
-    usage: GPUTextureUsageFlags;
-    viewFormats?: GPUTextureFormat[];
-}
-
-/** @category GPU */
-type GPUTextureDimension = "1d" | "2d" | "3d";
-
-/** @category GPU */
-type GPUTextureUsageFlags = number;
-
-/** @category GPU */
-declare class GPUTextureUsage {
-    static COPY_SRC: 0x01;
-    static COPY_DST: 0x02;
-    static TEXTURE_BINDING: 0x04;
-    static STORAGE_BINDING: 0x08;
-    static RENDER_ATTACHMENT: 0x10;
-}
-
-/** @category GPU */
-declare class GPUTextureView implements GPUObjectBase {
-    label: string;
-}
-
-/** @category GPU */
-interface GPUTextureViewDescriptor extends GPUObjectDescriptorBase {
-    format?: GPUTextureFormat;
-    dimension?: GPUTextureViewDimension;
-    usage?: GPUTextureUsageFlags;
-    aspect?: GPUTextureAspect;
-    baseMipLevel?: number;
-    mipLevelCount?: number;
-    baseArrayLayer?: number;
-    arrayLayerCount?: number;
-}
-
-/** @category GPU */
-type GPUTextureViewDimension =
-    | "1d"
-    | "2d"
-    | "2d-array"
-    | "cube"
-    | "cube-array"
-    | "3d";
-
-/** @category GPU */
-type GPUTextureAspect = "all" | "stencil-only" | "depth-only";
-
-/** @category GPU */
-type GPUTextureFormat =
-    | "r8unorm"
-    | "r8snorm"
-    | "r8uint"
-    | "r8sint"
-    | "r16uint"
-    | "r16sint"
-    | "r16float"
-    | "rg8unorm"
-    | "rg8snorm"
-    | "rg8uint"
-    | "rg8sint"
-    | "r32uint"
-    | "r32sint"
-    | "r32float"
-    | "rg16uint"
-    | "rg16sint"
-    | "rg16float"
-    | "rgba8unorm"
-    | "rgba8unorm-srgb"
-    | "rgba8snorm"
-    | "rgba8uint"
-    | "rgba8sint"
-    | "bgra8unorm"
-    | "bgra8unorm-srgb"
-    | "rgb9e5ufloat"
-    | "rgb10a2uint"
-    | "rgb10a2unorm"
-    | "rg11b10ufloat"
-    | "rg32uint"
-    | "rg32sint"
-    | "rg32float"
-    | "rgba16uint"
-    | "rgba16sint"
-    | "rgba16float"
-    | "rgba32uint"
-    | "rgba32sint"
-    | "rgba32float"
-    | "stencil8"
-    | "depth16unorm"
-    | "depth24plus"
-    | "depth24plus-stencil8"
-    | "depth32float"
-    | "depth32float-stencil8"
-    | "bc1-rgba-unorm"
-    | "bc1-rgba-unorm-srgb"
-    | "bc2-rgba-unorm"
-    | "bc2-rgba-unorm-srgb"
-    | "bc3-rgba-unorm"
-    | "bc3-rgba-unorm-srgb"
-    | "bc4-r-unorm"
-    | "bc4-r-snorm"
-    | "bc5-rg-unorm"
-    | "bc5-rg-snorm"
-    | "bc6h-rgb-ufloat"
-    | "bc6h-rgb-float"
-    | "bc7-rgba-unorm"
-    | "bc7-rgba-unorm-srgb"
-    | "etc2-rgb8unorm"
-    | "etc2-rgb8unorm-srgb"
-    | "etc2-rgb8a1unorm"
-    | "etc2-rgb8a1unorm-srgb"
-    | "etc2-rgba8unorm"
-    | "etc2-rgba8unorm-srgb"
-    | "eac-r11unorm"
-    | "eac-r11snorm"
-    | "eac-rg11unorm"
-    | "eac-rg11snorm"
-    | "astc-4x4-unorm"
-    | "astc-4x4-unorm-srgb"
-    | "astc-5x4-unorm"
-    | "astc-5x4-unorm-srgb"
-    | "astc-5x5-unorm"
-    | "astc-5x5-unorm-srgb"
-    | "astc-6x5-unorm"
-    | "astc-6x5-unorm-srgb"
-    | "astc-6x6-unorm"
-    | "astc-6x6-unorm-srgb"
-    | "astc-8x5-unorm"
-    | "astc-8x5-unorm-srgb"
-    | "astc-8x6-unorm"
-    | "astc-8x6-unorm-srgb"
-    | "astc-8x8-unorm"
-    | "astc-8x8-unorm-srgb"
-    | "astc-10x5-unorm"
-    | "astc-10x5-unorm-srgb"
-    | "astc-10x6-unorm"
-    | "astc-10x6-unorm-srgb"
-    | "astc-10x8-unorm"
-    | "astc-10x8-unorm-srgb"
-    | "astc-10x10-unorm"
-    | "astc-10x10-unorm-srgb"
-    | "astc-12x10-unorm"
-    | "astc-12x10-unorm-srgb"
-    | "astc-12x12-unorm"
-    | "astc-12x12-unorm-srgb";
-
-/** @category GPU */
-declare class GPUSampler implements GPUObjectBase {
-    label: string;
-}
-
-/** @category GPU */
-interface GPUSamplerDescriptor extends GPUObjectDescriptorBase {
-    addressModeU?: GPUAddressMode;
-    addressModeV?: GPUAddressMode;
-    addressModeW?: GPUAddressMode;
-    magFilter?: GPUFilterMode;
-    minFilter?: GPUFilterMode;
-    mipmapFilter?: GPUMipmapFilterMode;
-    lodMinClamp?: number;
-    lodMaxClamp?: number;
-    compare?: GPUCompareFunction;
-    maxAnisotropy?: number;
-}
-
-/** @category GPU */
-type GPUAddressMode = "clamp-to-edge" | "repeat" | "mirror-repeat";
-
-/** @category GPU */
-type GPUFilterMode = "nearest" | "linear";
-
-/** @category GPU */
-type GPUMipmapFilterMode = "nearest" | "linear";
-
-/** @category GPU */
-type GPUCompareFunction =
-    | "never"
-    | "less"
-    | "equal"
-    | "less-equal"
-    | "greater"
-    | "not-equal"
-    | "greater-equal"
-    | "always";
-
-/** @category GPU */
-declare class GPUBindGroupLayout implements GPUObjectBase {
-    label: string;
-}
-
-/** @category GPU */
-interface GPUBindGroupLayoutDescriptor extends GPUObjectDescriptorBase {
-    entries: GPUBindGroupLayoutEntry[];
-}
-
-/** @category GPU */
-interface GPUBindGroupLayoutEntry {
-    binding: number;
-    visibility: GPUShaderStageFlags;
-
-    buffer?: GPUBufferBindingLayout;
-    sampler?: GPUSamplerBindingLayout;
-    texture?: GPUTextureBindingLayout;
-    storageTexture?: GPUStorageTextureBindingLayout;
-}
-
-/** @category GPU */
-type GPUShaderStageFlags = number;
-
-/** @category GPU */
-declare class GPUShaderStage {
-    static VERTEX: 0x1;
-    static FRAGMENT: 0x2;
-    static COMPUTE: 0x4;
-}
-
-/** @category GPU */
-interface GPUBufferBindingLayout {
-    type?: GPUBufferBindingType;
-    hasDynamicOffset?: boolean;
-    minBindingSize?: number;
-}
-
-/** @category GPU */
-type GPUBufferBindingType = "uniform" | "storage" | "read-only-storage";
-
-/** @category GPU */
-interface GPUSamplerBindingLayout {
-    type?: GPUSamplerBindingType;
-}
-
-/** @category GPU */
-type GPUSamplerBindingType =
-    | "filtering"
-    | "non-filtering"
-    | "comparison";
-
-/** @category GPU */
-interface GPUTextureBindingLayout {
-    sampleType?: GPUTextureSampleType;
-    viewDimension?: GPUTextureViewDimension;
-    multisampled?: boolean;
-}
-
-/** @category GPU */
-type GPUTextureSampleType =
-    | "float"
-    | "unfilterable-float"
-    | "depth"
-    | "sint"
-    | "uint";
-
-/** @category GPU */
-type GPUStorageTextureAccess =
-    | "write-only"
-    | "read-only"
-    | "read-write";
-
-/** @category GPU */
-interface GPUStorageTextureBindingLayout {
-    access: GPUStorageTextureAccess;
-    format: GPUTextureFormat;
-    viewDimension?: GPUTextureViewDimension;
-}
-
-/** @category GPU */
-declare class GPUBindGroup implements GPUObjectBase {
-    label: string;
-}
-
-/** @category GPU */
-interface GPUBindGroupDescriptor extends GPUObjectDescriptorBase {
-    layout: GPUBindGroupLayout;
-    entries: GPUBindGroupEntry[];
-}
-
-/** @category GPU */
-type GPUBindingResource =
-    | GPUSampler
-    | GPUTextureView
-    | GPUBufferBinding;
-
-/** @category GPU */
-interface GPUBindGroupEntry {
-    binding: number;
-    resource: GPUBindingResource;
-}
-
-/** @category GPU */
-interface GPUBufferBinding {
-    buffer: GPUBuffer;
-    offset?: number;
-    size?: number;
-}
-
-/** @category GPU */
-declare class GPUPipelineLayout implements GPUObjectBase {
-    label: string;
-}
-
-/** @category GPU */
-interface GPUPipelineLayoutDescriptor extends GPUObjectDescriptorBase {
-    bindGroupLayouts: GPUBindGroupLayout[];
-}
-
-/** @category GPU */
-type GPUCompilationMessageType = "error" | "warning" | "info";
-
-/** @category GPU */
-interface GPUCompilationMessage {
-    readonly message: string;
-    readonly type: GPUCompilationMessageType;
-    readonly lineNum: number;
-    readonly linePos: number;
-}
-
-/** @category GPU */
-interface GPUCompilationInfo {
-    readonly messages: ReadonlyArray<GPUCompilationMessage>;
-}
-
-/** @category GPU */
-declare class GPUPipelineError extends DOMException {
-    constructor(message?: string, options?: GPUPipelineErrorInit);
-
-    readonly reason: GPUPipelineErrorReason;
-}
-
-/** @category GPU */
-interface GPUPipelineErrorInit {
-    reason: GPUPipelineErrorReason;
-}
-
-/** @category GPU */
-type GPUPipelineErrorReason = "validation" | "internal";
-
-/**
- * Represents a compiled shader module that can be used to create graphics or compute pipelines.
- *
- * @example
- * ```ts
- * // Create a shader module using WGSL (WebGPU Shading Language)
- * const shaderModule = device.createShaderModule({
- *   label: "My Shader",
- *   code: `
- *     @vertex
- *     fn vertexMain(@location(0) pos: vec2f) -> @builtin(position) vec4f {
- *       return vec4f(pos, 0.0, 1.0);
- *     }
- *
- *     @fragment
- *     fn fragmentMain() -> @location(0) vec4f {
- *       return vec4f(1.0, 0.0, 0.0, 1.0); // red color
- *     }
- *   `
- * });
- *
- * // Can optionally check for compilation errors/warnings
- * const compilationInfo = await shaderModule.getCompilationInfo();
- * for (const message of compilationInfo.messages) {
- *   console.log(`${message.type}: ${message.message} at ${message.lineNum}:${message.linePos}`);
- * }
- * ```
- *
- * @category GPU
- */
-declare class GPUShaderModule implements GPUObjectBase {
-    label: string;
-
     /**
-     * Returns compilation messages for this shader module,
-     * which can include errors, warnings and info messages.
+     * APIs for working with the OpenTelemetry observability framework. Deno can
+     * export traces, metrics, and logs to OpenTelemetry compatible backends via
+     * the OTLP protocol.
+     *
+     * Deno automatically instruments the runtime with OpenTelemetry traces and
+     * metrics. This data is exported via OTLP to OpenTelemetry compatible
+     * backends. User logs from the `console` API are exported as OpenTelemetry
+     * logs via OTLP.
+     *
+     * User code can also create custom traces, metrics, and logs using the
+     * OpenTelemetry API. This is done using the official OpenTelemetry package
+     * for JavaScript:
+     * [`npm:@opentelemetry/api`](https://opentelemetry.io/docs/languages/js/).
+     * Deno integrates with this package to provide tracing, metrics, and trace
+     * context propagation between native Deno APIs (like `Deno.serve` or `fetch`)
+     * and custom user code. Deno automatically registers the providers with the
+     * OpenTelemetry API, so users can start creating custom traces, metrics, and
+     * logs without any additional setup.
+     *
+     * @example Using OpenTelemetry API to create custom traces
+     * ```ts,ignore
+     * import { trace } from "npm:@opentelemetry/api@1";
+     *
+     * const tracer = trace.getTracer("example-tracer");
+     *
+     * async function doWork() {
+     *   return tracer.startActiveSpan("doWork", async (span) => {
+     *     span.setAttribute("key", "value");
+     *     await new Promise((resolve) => setTimeout(resolve, 1000));
+     *     span.end();
+     *   });
+     * }
+     *
+     * Deno.serve(async (req) => {
+     *   await doWork();
+     *   const resp = await fetch("https://example.com");
+     *   return resp;
+     * });
+     * ```
+     *
+     * @category Telemetry
      */
-    getCompilationInfo(): Promise<GPUCompilationInfo>;
-}
-
-/** @category GPU */
-interface GPUShaderModuleDescriptor extends GPUObjectDescriptorBase {
-    code: string;
-    sourceMap?: any;
-}
-
-/** @category GPU */
-type GPUAutoLayoutMode = "auto";
-
-/** @category GPU */
-interface GPUPipelineDescriptorBase extends GPUObjectDescriptorBase {
-    layout: GPUPipelineLayout | GPUAutoLayoutMode;
-}
-
-/** @category GPU */
-interface GPUPipelineBase {
-    getBindGroupLayout(index: number): GPUBindGroupLayout;
-}
-
-/** @category GPU */
-interface GPUProgrammableStage {
-    module: GPUShaderModule;
-    entryPoint?: string;
-    constants?: Record<string, number>;
-}
-
-/** @category GPU */
-declare class GPUComputePipeline implements GPUObjectBase, GPUPipelineBase {
-    label: string;
-
-    getBindGroupLayout(index: number): GPUBindGroupLayout;
-}
-
-/** @category GPU */
-interface GPUComputePipelineDescriptor extends GPUPipelineDescriptorBase {
-    compute: GPUProgrammableStage;
-}
-
-/** @category GPU */
-declare class GPURenderPipeline implements GPUObjectBase, GPUPipelineBase {
-    label: string;
-
-    getBindGroupLayout(index: number): GPUBindGroupLayout;
-}
-
-/** @category GPU */
-interface GPURenderPipelineDescriptor extends GPUPipelineDescriptorBase {
-    vertex: GPUVertexState;
-    primitive?: GPUPrimitiveState;
-    depthStencil?: GPUDepthStencilState;
-    multisample?: GPUMultisampleState;
-    fragment?: GPUFragmentState;
-}
-
-/** @category GPU */
-interface GPUPrimitiveState {
-    topology?: GPUPrimitiveTopology;
-    stripIndexFormat?: GPUIndexFormat;
-    frontFace?: GPUFrontFace;
-    cullMode?: GPUCullMode;
-    unclippedDepth?: boolean;
-}
-
-/** @category GPU */
-type GPUPrimitiveTopology =
-    | "point-list"
-    | "line-list"
-    | "line-strip"
-    | "triangle-list"
-    | "triangle-strip";
-
-/** @category GPU */
-type GPUFrontFace = "ccw" | "cw";
-
-/** @category GPU */
-type GPUCullMode = "none" | "front" | "back";
-
-/** @category GPU */
-interface GPUMultisampleState {
-    count?: number;
-    mask?: number;
-    alphaToCoverageEnabled?: boolean;
-}
-
-/** @category GPU */
-interface GPUFragmentState extends GPUProgrammableStage {
-    targets: (GPUColorTargetState | null)[];
-}
-
-/** @category GPU */
-interface GPUColorTargetState {
-    format: GPUTextureFormat;
-
-    blend?: GPUBlendState;
-    writeMask?: GPUColorWriteFlags;
-}
-
-/** @category GPU */
-interface GPUBlendState {
-    color: GPUBlendComponent;
-    alpha: GPUBlendComponent;
-}
-
-/** @category GPU */
-type GPUColorWriteFlags = number;
-
-/** @category GPU */
-declare class GPUColorWrite {
-    static RED: 0x1;
-    static GREEN: 0x2;
-    static BLUE: 0x4;
-    static ALPHA: 0x8;
-    static ALL: 0xF;
-}
-
-/** @category GPU */
-interface GPUBlendComponent {
-    operation?: GPUBlendOperation;
-    srcFactor?: GPUBlendFactor;
-    dstFactor?: GPUBlendFactor;
-}
-
-/** @category GPU */
-type GPUBlendFactor =
-    | "zero"
-    | "one"
-    | "src"
-    | "one-minus-src"
-    | "src-alpha"
-    | "one-minus-src-alpha"
-    | "dst"
-    | "one-minus-dst"
-    | "dst-alpha"
-    | "one-minus-dst-alpha"
-    | "src-alpha-saturated"
-    | "constant"
-    | "one-minus-constant"
-    | "src1"
-    | "one-minus-src1"
-    | "src1-alpha"
-    | "one-minus-src1-alpha";
-
-/** @category GPU */
-type GPUBlendOperation =
-    | "add"
-    | "subtract"
-    | "reverse-subtract"
-    | "min"
-    | "max";
-
-/** @category GPU */
-interface GPUDepthStencilState {
-    format: GPUTextureFormat;
-
-    depthWriteEnabled?: boolean;
-    depthCompare?: GPUCompareFunction;
-
-    stencilFront?: GPUStencilFaceState;
-    stencilBack?: GPUStencilFaceState;
-
-    stencilReadMask?: number;
-    stencilWriteMask?: number;
-
-    depthBias?: number;
-    depthBiasSlopeScale?: number;
-    depthBiasClamp?: number;
-}
-
-/** @category GPU */
-interface GPUStencilFaceState {
-    compare?: GPUCompareFunction;
-    failOp?: GPUStencilOperation;
-    depthFailOp?: GPUStencilOperation;
-    passOp?: GPUStencilOperation;
-}
-
-/** @category GPU */
-type GPUStencilOperation =
-    | "keep"
-    | "zero"
-    | "replace"
-    | "invert"
-    | "increment-clamp"
-    | "decrement-clamp"
-    | "increment-wrap"
-    | "decrement-wrap";
-
-/** @category GPU */
-type GPUIndexFormat = "uint16" | "uint32";
-
-/** @category GPU */
-type GPUVertexFormat =
-    | "uint8x2"
-    | "uint8x4"
-    | "sint8x2"
-    | "sint8x4"
-    | "unorm8x2"
-    | "unorm8x4"
-    | "snorm8x2"
-    | "snorm8x4"
-    | "uint16x2"
-    | "uint16x4"
-    | "sint16x2"
-    | "sint16x4"
-    | "unorm16x2"
-    | "unorm16x4"
-    | "snorm16x2"
-    | "snorm16x4"
-    | "float16x2"
-    | "float16x4"
-    | "float32"
-    | "float32x2"
-    | "float32x3"
-    | "float32x4"
-    | "uint32"
-    | "uint32x2"
-    | "uint32x3"
-    | "uint32x4"
-    | "sint32"
-    | "sint32x2"
-    | "sint32x3"
-    | "sint32x4"
-    | "unorm10-10-10-2";
-
-/** @category GPU */
-type GPUVertexStepMode = "vertex" | "instance";
-
-/** @category GPU */
-interface GPUVertexState extends GPUProgrammableStage {
-    buffers?: (GPUVertexBufferLayout | null)[];
-}
-
-/** @category GPU */
-interface GPUVertexBufferLayout {
-    arrayStride: number;
-    stepMode?: GPUVertexStepMode;
-    attributes: GPUVertexAttribute[];
-}
-
-/** @category GPU */
-interface GPUVertexAttribute {
-    format: GPUVertexFormat;
-    offset: number;
-
-    shaderLocation: number;
-}
-
-/** @category GPU */
-interface GPUTexelCopyBufferLayout {
-    offset?: number;
-    bytesPerRow?: number;
-    rowsPerImage?: number;
-}
-
-/** @category GPU */
-declare class GPUCommandBuffer implements GPUObjectBase {
-    label: string;
-}
-
-/** @category GPU */
-interface GPUCommandBufferDescriptor extends GPUObjectDescriptorBase {}
-
-/**
- * Used to record GPU commands for later execution by the GPU.
- *
- * @example
- * ```ts
- * // Create a command encoder
- * const commandEncoder = device.createCommandEncoder({
- *   label: "Main Command Encoder"
- * });
- *
- * // Record a copy from one buffer to another
- * commandEncoder.copyBufferToBuffer(
- *   sourceBuffer, 0, // Source buffer and offset
- *   destinationBuffer, 0, // Destination buffer and offset
- *   sourceBuffer.size // Size to copy
- * );
- *
- * // Begin a compute pass to execute a compute shader
- * const computePass = commandEncoder.beginComputePass();
- * computePass.setPipeline(computePipeline);
- * computePass.setBindGroup(0, bindGroup);
- * computePass.dispatchWorkgroups(32, 1, 1); // Run 32 workgroups
- * computePass.end();
- *
- * // Begin a render pass to draw to a texture
- * const renderPass = commandEncoder.beginRenderPass({
- *   colorAttachments: [{
- *     view: textureView,
- *     clearValue: { r: 0.0, g: 0.0, b: 0.0, a: 1.0 },
- *     loadOp: "clear",
- *     storeOp: "store"
- *   }]
- * });
- * renderPass.setPipeline(renderPipeline);
- * renderPass.draw(3, 1, 0, 0); // Draw a triangle
- * renderPass.end();
- *
- * // Finish encoding and submit to GPU
- * const commandBuffer = commandEncoder.finish();
- * device.queue.submit([commandBuffer]);
- * ```
- *
- * @category GPU
- */
-declare class GPUCommandEncoder implements GPUObjectBase {
-    label: string;
-
-    beginRenderPass(descriptor: GPURenderPassDescriptor): GPURenderPassEncoder;
-    beginComputePass(
-        descriptor?: GPUComputePassDescriptor,
-    ): GPUComputePassEncoder;
-
-    copyBufferToBuffer(
-        source: GPUBuffer,
-        sourceOffset: number,
-        destination: GPUBuffer,
-        destinationOffset: number,
-        size: number,
-    ): undefined;
-
-    copyBufferToTexture(
-        source: GPUTexelCopyBufferInfo,
-        destination: GPUTexelCopyTextureInfo,
-        copySize: GPUExtent3D,
-    ): undefined;
-
-    copyTextureToBuffer(
-        source: GPUTexelCopyTextureInfo,
-        destination: GPUTexelCopyBufferInfo,
-        copySize: GPUExtent3D,
-    ): undefined;
-
-    copyTextureToTexture(
-        source: GPUTexelCopyTextureInfo,
-        destination: GPUTexelCopyTextureInfo,
-        copySize: GPUExtent3D,
-    ): undefined;
-
-    clearBuffer(
-        destination: GPUBuffer,
-        destinationOffset?: number,
-        size?: number,
-    ): undefined;
-
-    pushDebugGroup(groupLabel: string): undefined;
-    popDebugGroup(): undefined;
-    insertDebugMarker(markerLabel: string): undefined;
-
-    writeTimestamp(querySet: GPUQuerySet, queryIndex: number): undefined;
-
-    resolveQuerySet(
-        querySet: GPUQuerySet,
-        firstQuery: number,
-        queryCount: number,
-        destination: GPUBuffer,
-        destinationOffset: number,
-    ): undefined;
-
-    finish(descriptor?: GPUCommandBufferDescriptor): GPUCommandBuffer;
-}
-
-/** @category GPU */
-interface GPUCommandEncoderDescriptor extends GPUObjectDescriptorBase {}
-
-/** @category GPU */
-interface GPUTexelCopyBufferInfo extends GPUTexelCopyBufferLayout {
-    buffer: GPUBuffer;
-}
-
-/** @category GPU */
-interface GPUTexelCopyTextureInfo {
-    texture: GPUTexture;
-    mipLevel?: number;
-    origin?: GPUOrigin3D;
-    aspect?: GPUTextureAspect;
-}
-
-/** @category GPU */
-interface GPUProgrammablePassEncoder {
-    setBindGroup(
-        index: number,
-        bindGroup: GPUBindGroup | null,
-        dynamicOffsets?: number[],
-    ): undefined;
-
-    setBindGroup(
-        index: number,
-        bindGroup: GPUBindGroup | null,
-        dynamicOffsetsData: Uint32Array,
-        dynamicOffsetsDataStart: number,
-        dynamicOffsetsDataLength: number,
-    ): undefined;
-
-    pushDebugGroup(groupLabel: string): undefined;
-    popDebugGroup(): undefined;
-    insertDebugMarker(markerLabel: string): undefined;
-}
-
-/** @category GPU */
-declare class GPUComputePassEncoder implements GPUObjectBase, GPUProgrammablePassEncoder {
-    label: string;
-    setBindGroup(
-        index: number,
-        bindGroup: GPUBindGroup | null,
-        dynamicOffsets?: number[],
-    ): undefined;
-    setBindGroup(
-        index: number,
-        bindGroup: GPUBindGroup | null,
-        dynamicOffsetsData: Uint32Array,
-        dynamicOffsetsDataStart: number,
-        dynamicOffsetsDataLength: number,
-    ): undefined;
-    pushDebugGroup(groupLabel: string): undefined;
-    popDebugGroup(): undefined;
-    insertDebugMarker(markerLabel: string): undefined;
-    setPipeline(pipeline: GPUComputePipeline): undefined;
-    dispatchWorkgroups(x: number, y?: number, z?: number): undefined;
-    dispatchWorkgroupsIndirect(
-        indirectBuffer: GPUBuffer,
-        indirectOffset: number,
-    ): undefined;
-
-    end(): undefined;
-}
-
-/** @category GPU */
-interface GPUComputePassTimestampWrites {
-    querySet: GPUQuerySet;
-    beginningOfPassWriteIndex?: number;
-    endOfPassWriteIndex?: number;
-}
-
-/** @category GPU */
-interface GPUComputePassDescriptor extends GPUObjectDescriptorBase {
-    timestampWrites?: GPUComputePassTimestampWrites;
-}
-
-/** @category GPU */
-interface GPURenderEncoderBase {
-    setPipeline(pipeline: GPURenderPipeline): undefined;
-
-    setIndexBuffer(
-        buffer: GPUBuffer,
-        indexFormat: GPUIndexFormat,
-        offset?: number,
-        size?: number,
-    ): undefined;
-    setVertexBuffer(
-        slot: number,
-        buffer: GPUBuffer,
-        offset?: number,
-        size?: number,
-    ): undefined;
-
-    draw(
-        vertexCount: number,
-        instanceCount?: number,
-        firstVertex?: number,
-        firstInstance?: number,
-    ): undefined;
-    drawIndexed(
-        indexCount: number,
-        instanceCount?: number,
-        firstIndex?: number,
-        baseVertex?: number,
-        firstInstance?: number,
-    ): undefined;
-
-    drawIndirect(indirectBuffer: GPUBuffer, indirectOffset: number): undefined;
-    drawIndexedIndirect(
-        indirectBuffer: GPUBuffer,
-        indirectOffset: number,
-    ): undefined;
-}
-
-/** @category GPU */
-declare class GPURenderPassEncoder implements GPUObjectBase, GPUProgrammablePassEncoder, GPURenderEncoderBase {
-    label: string;
-    setBindGroup(
-        index: number,
-        bindGroup: GPUBindGroup | null,
-        dynamicOffsets?: number[],
-    ): undefined;
-    setBindGroup(
-        index: number,
-        bindGroup: GPUBindGroup | null,
-        dynamicOffsetsData: Uint32Array,
-        dynamicOffsetsDataStart: number,
-        dynamicOffsetsDataLength: number,
-    ): undefined;
-    pushDebugGroup(groupLabel: string): undefined;
-    popDebugGroup(): undefined;
-    insertDebugMarker(markerLabel: string): undefined;
-    setPipeline(pipeline: GPURenderPipeline): undefined;
-    setIndexBuffer(
-        buffer: GPUBuffer,
-        indexFormat: GPUIndexFormat,
-        offset?: number,
-        size?: number,
-    ): undefined;
-    setVertexBuffer(
-        slot: number,
-        buffer: GPUBuffer,
-        offset?: number,
-        size?: number,
-    ): undefined;
-    draw(
-        vertexCount: number,
-        instanceCount?: number,
-        firstVertex?: number,
-        firstInstance?: number,
-    ): undefined;
-    drawIndexed(
-        indexCount: number,
-        instanceCount?: number,
-        firstIndex?: number,
-        baseVertex?: number,
-        firstInstance?: number,
-    ): undefined;
-    drawIndirect(indirectBuffer: GPUBuffer, indirectOffset: number): undefined;
-    drawIndexedIndirect(
-        indirectBuffer: GPUBuffer,
-        indirectOffset: number,
-    ): undefined;
-
-    setViewport(
-        x: number,
-        y: number,
-        width: number,
-        height: number,
-        minDepth: number,
-        maxDepth: number,
-    ): undefined;
-
-    setScissorRect(
-        x: number,
-        y: number,
-        width: number,
-        height: number,
-    ): undefined;
-
-    setBlendConstant(color: GPUColor): undefined;
-    setStencilReference(reference: number): undefined;
-
-    beginOcclusionQuery(queryIndex: number): undefined;
-    endOcclusionQuery(): undefined;
-
-    executeBundles(bundles: GPURenderBundle[]): undefined;
-    end(): undefined;
-}
-
-/** @category GPU */
-interface GPURenderPassTimestampWrites {
-    querySet: GPUQuerySet;
-    beginningOfPassWriteIndex?: number;
-    endOfPassWriteIndex?: number;
-}
-
-/** @category GPU */
-interface GPURenderPassDescriptor extends GPUObjectDescriptorBase {
-    colorAttachments: (GPURenderPassColorAttachment | null)[];
-    depthStencilAttachment?: GPURenderPassDepthStencilAttachment;
-    occlusionQuerySet?: GPUQuerySet;
-    timestampWrites?: GPURenderPassTimestampWrites;
-}
-
-/** @category GPU */
-interface GPURenderPassColorAttachment {
-    view: GPUTextureView;
-    resolveTarget?: GPUTextureView;
-
-    clearValue?: GPUColor;
-    loadOp: GPULoadOp;
-    storeOp: GPUStoreOp;
-}
-
-/** @category GPU */
-interface GPURenderPassDepthStencilAttachment {
-    view: GPUTextureView;
-
-    depthClearValue?: number;
-    depthLoadOp?: GPULoadOp;
-    depthStoreOp?: GPUStoreOp;
-    depthReadOnly?: boolean;
-
-    stencilClearValue?: number;
-    stencilLoadOp?: GPULoadOp;
-    stencilStoreOp?: GPUStoreOp;
-    stencilReadOnly?: boolean;
-}
-
-/** @category GPU */
-type GPULoadOp = "load" | "clear";
-
-/** @category GPU */
-type GPUStoreOp = "store" | "discard";
-
-/** @category GPU */
-declare class GPURenderBundle implements GPUObjectBase {
-    label: string;
-}
-
-/** @category GPU */
-interface GPURenderBundleDescriptor extends GPUObjectDescriptorBase {}
-
-/** @category GPU */
-declare class GPURenderBundleEncoder implements GPUObjectBase, GPUProgrammablePassEncoder, GPURenderEncoderBase {
-    label: string;
-    draw(
-        vertexCount: number,
-        instanceCount?: number,
-        firstVertex?: number,
-        firstInstance?: number,
-    ): undefined;
-    drawIndexed(
-        indexCount: number,
-        instanceCount?: number,
-        firstIndex?: number,
-        baseVertex?: number,
-        firstInstance?: number,
-    ): undefined;
-    drawIndexedIndirect(
-        indirectBuffer: GPUBuffer,
-        indirectOffset: number,
-    ): undefined;
-    drawIndirect(indirectBuffer: GPUBuffer, indirectOffset: number): undefined;
-    insertDebugMarker(markerLabel: string): undefined;
-    popDebugGroup(): undefined;
-    pushDebugGroup(groupLabel: string): undefined;
-    setBindGroup(
-        index: number,
-        bindGroup: GPUBindGroup | null,
-        dynamicOffsets?: number[],
-    ): undefined;
-    setBindGroup(
-        index: number,
-        bindGroup: GPUBindGroup | null,
-        dynamicOffsetsData: Uint32Array,
-        dynamicOffsetsDataStart: number,
-        dynamicOffsetsDataLength: number,
-    ): undefined;
-    setIndexBuffer(
-        buffer: GPUBuffer,
-        indexFormat: GPUIndexFormat,
-        offset?: number,
-        size?: number,
-    ): undefined;
-    setPipeline(pipeline: GPURenderPipeline): undefined;
-    setVertexBuffer(
-        slot: number,
-        buffer: GPUBuffer,
-        offset?: number,
-        size?: number,
-    ): undefined;
-
-    finish(descriptor?: GPURenderBundleDescriptor): GPURenderBundle;
-}
-
-/** @category GPU */
-interface GPURenderPassLayout extends GPUObjectDescriptorBase {
-    colorFormats: (GPUTextureFormat | null)[];
-    depthStencilFormat?: GPUTextureFormat;
-    sampleCount?: number;
-}
-
-/** @category GPU */
-interface GPURenderBundleEncoderDescriptor extends GPURenderPassLayout {
-    depthReadOnly?: boolean;
-    stencilReadOnly?: boolean;
-}
-
-/**
- * Represents a queue to submit commands to the GPU.
- *
- * @example
- * ```ts
- * // Get a queue from the device (each device has a default queue)
- * const queue = device.queue;
- *
- * // Write data to a buffer
- * const buffer = device.createBuffer({
- *   size: data.byteLength,
- *   usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.STORAGE
- * });
- * queue.writeBuffer(buffer, 0, data);
- *
- * // Submit command buffers to the GPU for execution
- * const commandBuffer = commandEncoder.finish();
- * queue.submit([commandBuffer]);
- *
- * // Wait for all submitted operations to complete
- * await queue.onSubmittedWorkDone();
- *
- * // Example: Write data to a texture
- * const texture = device.createTexture({
- *   size: { width: 256, height: 256 },
- *   format: "rgba8unorm",
- *   usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST
- * });
- *
- * const data = new Uint8Array(256 * 256 * 4); // RGBA data
- * // Fill data with your texture content...
- *
- * queue.writeTexture(
- *   { texture },
- *   data,
- *   { bytesPerRow: 256 * 4 },
- *   { width: 256, height: 256 }
- * );
- * ```
- *
- * @category GPU
- */
-declare class GPUQueue implements GPUObjectBase {
-    label: string;
-
-    submit(commandBuffers: GPUCommandBuffer[]): undefined;
-
-    onSubmittedWorkDone(): Promise<undefined>;
-
-    writeBuffer(
-        buffer: GPUBuffer,
-        bufferOffset: number,
-        data: BufferSource,
-        dataOffset?: number,
-        size?: number,
-    ): undefined;
-
-    writeTexture(
-        destination: GPUTexelCopyTextureInfo,
-        data: BufferSource,
-        dataLayout: GPUTexelCopyBufferLayout,
-        size: GPUExtent3D,
-    ): undefined;
-}
-
-/** @category GPU */
-declare class GPUQuerySet implements GPUObjectBase {
-    label: string;
-
-    destroy(): undefined;
-
-    readonly type: GPUQueryType;
-    readonly count: number;
-}
-
-/** @category GPU */
-interface GPUQuerySetDescriptor extends GPUObjectDescriptorBase {
-    type: GPUQueryType;
-    count: number;
-}
-
-/** @category GPU */
-type GPUQueryType = "occlusion" | "timestamp";
-
-/** @category GPU */
-type GPUDeviceLostReason = "destroyed";
-
-/** @category GPU */
-interface GPUDeviceLostInfo {
-    readonly reason: GPUDeviceLostReason;
-    readonly message: string;
-}
-
-/** @category GPU */
-declare class GPUError {
-    readonly message: string;
-}
-
-/** @category GPU */
-declare class GPUOutOfMemoryError extends GPUError {
-    constructor(message: string);
-}
-
-/** @category GPU */
-declare class GPUValidationError extends GPUError {
-    constructor(message: string);
-}
-
-/** @category GPU */
-declare class GPUInternalError extends GPUError {
-    constructor(message: string);
-}
-
-/** @category GPU */
-type GPUErrorFilter = "out-of-memory" | "validation" | "internal";
-
-/** @category GPU */
-declare class GPUUncapturedErrorEvent extends Event {
-    constructor(
-        type: string,
-        gpuUncapturedErrorEventInitDict: GPUUncapturedErrorEventInit,
-    );
-
-    readonly error: GPUError;
-}
-
-/** @category GPU */
-interface GPUUncapturedErrorEventInit extends EventInit {
-    error: GPUError;
-}
-
-/** @category GPU */
-interface GPUColorDict {
-    r: number;
-    g: number;
-    b: number;
-    a: number;
-}
-
-/** @category GPU */
-type GPUColor = number[] | GPUColorDict;
-
-/** @category GPU */
-interface GPUOrigin3DDict {
-    x?: number;
-    y?: number;
-    z?: number;
-}
-
-/** @category GPU */
-type GPUOrigin3D = number[] | GPUOrigin3DDict;
-
-/** @category GPU */
-interface GPUExtent3DDict {
-    width: number;
-    height?: number;
-    depthOrArrayLayers?: number;
-}
-
-/** @category GPU */
-type GPUExtent3D = number[] | GPUExtent3DDict;
-
-/** @category GPU */
-type GPUCanvasAlphaMode = "opaque" | "premultiplied";
-
-/** @category GPU */
-interface GPUCanvasConfiguration {
-    device: GPUDevice;
-    format: GPUTextureFormat;
-    usage?: GPUTextureUsageFlags;
-    viewFormats?: GPUTextureFormat[];
-    colorSpace?: "srgb" | "display-p3";
-    alphaMode?: GPUCanvasAlphaMode;
-}
-
-/** @category GPU */
-interface GPUCanvasContext {
-    configure(configuration: GPUCanvasConfiguration): undefined;
-    unconfigure(): undefined;
-    getCurrentTexture(): GPUTexture;
+    export namespace telemetry {
+        /**
+         * A TracerProvider compatible with OpenTelemetry.js
+         * https://open-telemetry.github.io/opentelemetry-js/interfaces/_opentelemetry_api.TracerProvider.html
+         *
+         * This is a singleton object that implements the OpenTelemetry
+         * TracerProvider interface.
+         *
+         * @category Telemetry
+         */
+        // deno-lint-ignore no-explicit-any
+        export const tracerProvider: any;
+
+        /**
+         * A ContextManager compatible with OpenTelemetry.js
+         * https://open-telemetry.github.io/opentelemetry-js/interfaces/_opentelemetry_api.ContextManager.html
+         *
+         * This is a singleton object that implements the OpenTelemetry
+         * ContextManager interface.
+         *
+         * @category Telemetry
+         */
+        // deno-lint-ignore no-explicit-any
+        export const contextManager: any;
+
+        /**
+         * A MeterProvider compatible with OpenTelemetry.js
+         * https://open-telemetry.github.io/opentelemetry-js/interfaces/_opentelemetry_api.MeterProvider.html
+         *
+         * This is a singleton object that implements the OpenTelemetry
+         * MeterProvider interface.
+         *
+         * @category Telemetry
+         */
+        // deno-lint-ignore no-explicit-any
+        export const meterProvider: any;
+
+        export {}; // only export exports
+    }
+
+    export {}; // only export exports
 }
 
 declare namespace Deno {
@@ -7974,6 +6761,18 @@ declare namespace Deno {
          *
          * @default {"0.0.0.0"} */
         hostname?: string;
+
+        /** Maximum number of pending connections in the listen queue.
+         *
+         * This parameter controls how many incoming connections can be queued by the
+         * operating system while waiting for the application to accept them. If more
+         * connections arrive when the queue is full, they will be refused.
+         *
+         * The kernel may adjust this value (e.g., rounding up to the next power of 2
+         * plus 1). Different operating systems have different maximum limits.
+         *
+         * @default {511} */
+        tcpBacklog?: number;
     }
 
     /** @category Network */
@@ -8239,6 +7038,15 @@ declare namespace Deno {
          * TLS handshake.
          */
         alpnProtocols?: string[];
+        /** If true, the certificate's common name or subject alternative names will not be
+         * checked against the hostname provided in the options.
+         *
+         * This disables hostname verification but still validates the certificate chain.
+         * Use with caution and only when connecting to known servers.
+         *
+         * @default {false}
+         */
+        unsafelyDisableHostnameVerification?: boolean;
     }
 
     /** Establishes a secure connection over TLS (transport layer security) using
@@ -8288,6 +7096,15 @@ declare namespace Deno {
          * TLS handshake.
          */
         alpnProtocols?: string[];
+        /** If true, the certificate's common name or subject alternative names will not be
+         * checked against the hostname provided in the options.
+         *
+         * This disables hostname verification but still validates the certificate chain.
+         * Use with caution and only when connecting to known servers.
+         *
+         * @default {false}
+         */
+        unsafelyDisableHostnameVerification?: boolean;
     }
 
     /** Start TLS handshake from an existing connection using an optional list of
@@ -8538,7 +7355,7 @@ declare namespace Deno {
      * @experimental
      * @category Network
      */
-    export interface QuicListener extends AsyncIterable<QuicConn> {
+    export interface QuicListener extends AsyncIterable<QuicIncoming> {
         /** Waits for and resolves to the next incoming connection. */
         incoming(): Promise<QuicIncoming>;
 
@@ -8548,7 +7365,7 @@ declare namespace Deno {
         /** Stops the listener. This does not close the endpoint. */
         stop(): void;
 
-        [Symbol.asyncIterator](): AsyncIterableIterator<QuicConn>;
+        [Symbol.asyncIterator](): AsyncIterableIterator<QuicIncoming>;
 
         /** The endpoint for this listener. */
         readonly endpoint: QuicEndpoint;
@@ -8738,6 +7555,177 @@ declare namespace Deno {
 declare namespace Deno {
     export {}; // stop default export type behavior
 
+    /**
+     * @category Bundler
+     * @experimental
+     */
+    export namespace bundle {
+        /**
+         * The target platform of the bundle.
+         * @category Bundler
+         * @experimental
+         */
+        export type Platform = "browser" | "deno";
+
+        /**
+         * The output format of the bundle.
+         * @category Bundler
+         * @experimental
+         */
+        export type Format = "esm" | "cjs" | "iife";
+
+        /**
+         * The source map type of the bundle.
+         * @category Bundler
+         * @experimental
+         */
+        export type SourceMapType = "linked" | "inline" | "external";
+
+        /**
+         * How to handle packages.
+         *
+         * - `bundle`: packages are inlined into the bundle.
+         * - `external`: packages are excluded from the bundle, and treated as external dependencies.
+         * @category Bundler
+         * @experimental
+         */
+        export type PackageHandling = "bundle" | "external";
+
+        /**
+         * Options for the bundle.
+         * @category Bundler
+         * @experimental
+         */
+        export interface Options {
+            /**
+             * The entrypoints of the bundle.
+             */
+            entrypoints: string[];
+            /**
+             * Output file path.
+             */
+            outputPath?: string;
+            /**
+             * Output directory path.
+             */
+            outputDir?: string;
+            /**
+             * External modules to exclude from bundling.
+             */
+            external?: string[];
+            /**
+             * Bundle format.
+             */
+            format?: Format;
+            /**
+             * Whether to minify the output.
+             */
+            minify?: boolean;
+            /**
+             * Whether to keep function and class names.
+             */
+            keepNames?: boolean;
+            /**
+             * Whether to enable code splitting.
+             */
+            codeSplitting?: boolean;
+            /**
+             * Whether to inline imports.
+             */
+            inlineImports?: boolean;
+            /**
+             * How to handle packages.
+             */
+            packages?: PackageHandling;
+            /**
+             * Source map configuration.
+             */
+            sourcemap?: SourceMapType;
+            /**
+             * Target platform.
+             */
+            platform?: Platform;
+
+            /**
+             * Whether to write the output to the filesystem.
+             *
+             * @default true if outputDir or outputPath is set, false otherwise
+             */
+            write?: boolean;
+        }
+
+        /**
+         * The location of a message.
+         * @category Bundler
+         * @experimental
+         */
+        export interface MessageLocation {
+            file: string;
+            namespace?: string;
+            line: number;
+            column: number;
+            length: number;
+            suggestion?: string;
+        }
+
+        /**
+         * A note about a message.
+         * @category Bundler
+         * @experimental
+         */
+        export interface MessageNote {
+            text: string;
+            location?: MessageLocation;
+        }
+
+        /**
+         * A message emitted from the bundler.
+         * @category Bundler
+         * @experimental
+         */
+        export interface Message {
+            text: string;
+            location?: MessageLocation;
+            notes?: MessageNote[];
+        }
+
+        /**
+         * An output file in the bundle.
+         * @category Bundler
+         * @experimental
+         */
+        export interface OutputFile {
+            path: string;
+            contents?: Uint8Array<ArrayBuffer>;
+            hash: string;
+            text(): string;
+        }
+
+        /**
+         * The result of bundling.
+         * @category Bundler
+         * @experimental
+         */
+        export interface Result {
+            errors: Message[];
+            warnings: Message[];
+            success: boolean;
+            outputFiles?: OutputFile[];
+        }
+
+        export {}; // only export exports
+    }
+
+    /** **UNSTABLE**: New API, yet to be vetted.
+     *
+     * Bundle Typescript/Javascript code
+     * @category Bundle
+     * @experimental
+     */
+    export function bundle(
+        options: Deno.bundle.Options,
+    ): Promise<Deno.bundle.Result>;
+
     /** **UNSTABLE**: New API, yet to be vetted.
      *
      *  Creates a presentable WebGPU surface from given window and
@@ -8767,6 +7755,10 @@ declare namespace Deno {
         );
         getContext(context: "webgpu"): GPUCanvasContext;
         present(): void;
+        /**
+         * This method should be invoked when the size of the window changes.
+         */
+        resize(width: number, height: number): void;
     }
 
     /** **UNSTABLE**: New API, yet to be vetted.
@@ -9984,95 +8976,6 @@ declare namespace Deno {
     }
 
     /**
-     * **UNSTABLE**: New API, yet to be vetted.
-     *
-     * APIs for working with the OpenTelemetry observability framework. Deno can
-     * export traces, metrics, and logs to OpenTelemetry compatible backends via
-     * the OTLP protocol.
-     *
-     * Deno automatically instruments the runtime with OpenTelemetry traces and
-     * metrics. This data is exported via OTLP to OpenTelemetry compatible
-     * backends. User logs from the `console` API are exported as OpenTelemetry
-     * logs via OTLP.
-     *
-     * User code can also create custom traces, metrics, and logs using the
-     * OpenTelemetry API. This is done using the official OpenTelemetry package
-     * for JavaScript:
-     * [`npm:@opentelemetry/api`](https://opentelemetry.io/docs/languages/js/).
-     * Deno integrates with this package to provide tracing, metrics, and trace
-     * context propagation between native Deno APIs (like `Deno.serve` or `fetch`)
-     * and custom user code. Deno automatically registers the providers with the
-     * OpenTelemetry API, so users can start creating custom traces, metrics, and
-     * logs without any additional setup.
-     *
-     * @example Using OpenTelemetry API to create custom traces
-     * ```ts,ignore
-     * import { trace } from "npm:@opentelemetry/api@1";
-     *
-     * const tracer = trace.getTracer("example-tracer");
-     *
-     * async function doWork() {
-     *   return tracer.startActiveSpan("doWork", async (span) => {
-     *     span.setAttribute("key", "value");
-     *     await new Promise((resolve) => setTimeout(resolve, 1000));
-     *     span.end();
-     *   });
-     * }
-     *
-     * Deno.serve(async (req) => {
-     *   await doWork();
-     *   const resp = await fetch("https://example.com");
-     *   return resp;
-     * });
-     * ```
-     *
-     * @category Telemetry
-     * @experimental
-     */
-    export namespace telemetry {
-        /**
-         * A TracerProvider compatible with OpenTelemetry.js
-         * https://open-telemetry.github.io/opentelemetry-js/interfaces/_opentelemetry_api.TracerProvider.html
-         *
-         * This is a singleton object that implements the OpenTelemetry
-         * TracerProvider interface.
-         *
-         * @category Telemetry
-         * @experimental
-         */
-        // deno-lint-ignore no-explicit-any
-        export const tracerProvider: any;
-
-        /**
-         * A ContextManager compatible with OpenTelemetry.js
-         * https://open-telemetry.github.io/opentelemetry-js/interfaces/_opentelemetry_api.ContextManager.html
-         *
-         * This is a singleton object that implements the OpenTelemetry
-         * ContextManager interface.
-         *
-         * @category Telemetry
-         * @experimental
-         */
-        // deno-lint-ignore no-explicit-any
-        export const contextManager: any;
-
-        /**
-         * A MeterProvider compatible with OpenTelemetry.js
-         * https://open-telemetry.github.io/opentelemetry-js/interfaces/_opentelemetry_api.MeterProvider.html
-         *
-         * This is a singleton object that implements the OpenTelemetry
-         * MeterProvider interface.
-         *
-         * @category Telemetry
-         * @experimental
-         */
-        // deno-lint-ignore no-explicit-any
-        export const meterProvider: any;
-
-        export {}; // only export exports
-    }
-
-    /**
      * @category Linter
      * @experimental
      */
@@ -10134,6 +9037,27 @@ declare namespace Deno {
              * current node.
              */
             getAncestors(node: Node): Node[];
+
+            /**
+             * Get all comments inside the source.
+             */
+            getAllComments(): Array<LineComment | BlockComment>;
+
+            /**
+             * Get leading comments before a node.
+             */
+            getCommentsBefore(node: Node): Array<LineComment | BlockComment>;
+
+            /**
+             * Get trailing comments after a node.
+             */
+            getCommentsAfter(node: Node): Array<LineComment | BlockComment>;
+
+            /**
+             * Get comments inside a node.
+             */
+            getCommentsInside(node: Node): Array<LineComment | BlockComment>;
+
             /**
              * Get the full source code.
              */
@@ -10260,6 +9184,7 @@ declare namespace Deno {
             range: Range;
             sourceType: "module" | "script";
             body: Statement[];
+            comments: Array<LineComment | BlockComment>;
         }
 
         /**
@@ -13064,6 +11989,28 @@ declare namespace Deno {
             | TSVoidKeyword;
 
         /**
+         * A single line comment
+         * @category Linter
+         * @experimental
+         */
+        export interface LineComment {
+            type: "Line";
+            range: Range;
+            value: string;
+        }
+
+        /**
+         * A potentially multi-line block comment
+         * @category Linter
+         * @experimental
+         */
+        export interface BlockComment {
+            type: "Block";
+            range: Range;
+            value: string;
+        }
+
+        /**
          * Union type of all possible AST nodes
          * @category Linter
          * @experimental
@@ -13122,7 +12069,9 @@ declare namespace Deno {
             | TSIndexSignature
             | TSTypeAnnotation
             | TSTypeParameterDeclaration
-            | TSTypeParameter;
+            | TSTypeParameter
+            | LineComment
+            | BlockComment;
 
         export {}; // only export exports
     }

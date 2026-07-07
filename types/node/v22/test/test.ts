@@ -20,6 +20,7 @@ import {
     todo,
 } from "node:test";
 import { dot, junit, lcov, spec, tap, TestEvent } from "node:test/reporters";
+import { URL } from "node:url";
 
 // top-level export
 test satisfies typeof import("node:test");
@@ -791,6 +792,7 @@ test("mocks a setter", (t) => {
 });
 
 test("mocks a module", (t) => {
+    // module specifier as a string
     // $ExpectType MockModuleContext
     const mock = t.mock.module("node:readline", {
         namedExports: {
@@ -807,6 +809,36 @@ test("mocks a module", (t) => {
     });
     // $ExpectType void
     mock.restore();
+
+    // module specifier as a URL
+    // $ExpectType MockModuleContext
+    t.mock.module(new URL("someUrl"), {
+        namedExports: {
+            fn() {
+                return 42;
+            },
+        },
+    });
+});
+
+test("mocks a property", (t) => {
+    const object = { foo: "bar" };
+    const mockedObject = t.mock.property(object, "foo");
+    // $ExpectType string
+    mockedObject.foo;
+
+    mockedObject.mock.mockImplementation("baz");
+    mockedObject.mock.mockImplementationOnce("bash", 5);
+
+    // $ExpectType number
+    mockedObject.mock.accessCount();
+
+    const access = mockedObject.mock.accesses[0];
+    // $ExpectType string
+    access.value;
+
+    mockedObject.mock.resetAccesses();
+    mockedObject.mock.restore();
 });
 
 // @ts-expect-error
@@ -883,8 +915,8 @@ class TestReporter extends Transform {
                 break;
             }
             case "test:diagnostic": {
-                const { file, column, line, message, nesting } = event.data;
-                callback(null, `${message}/${nesting}/${file}/${column}/${line}`);
+                const { file, column, line, message, nesting, level } = event.data;
+                callback(null, `${message}/${nesting}/${file}/${column}/${line}/${level}`);
                 break;
             }
             case "test:enqueue": {
@@ -1004,7 +1036,7 @@ const invalidSuiteContext = new SuiteContext();
 test("check all assertion functions are re-exported", t => {
     type AssertModuleExports = keyof typeof import("assert");
     const keys: keyof { [K in keyof typeof t.assert as K extends AssertModuleExports ? K : never]: any } =
-        {} as Exclude<AssertModuleExports, "AssertionError" | "CallTracker" | "strict">;
+        {} as Exclude<AssertModuleExports, "Assert" | "AssertionError" | "CallTracker" | "strict">;
 });
 
 test("planning with streams", (t: TestContext, done) => {

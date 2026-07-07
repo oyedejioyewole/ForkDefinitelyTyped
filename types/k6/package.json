@@ -1,7 +1,7 @@
 {
     "private": true,
     "name": "@types/k6",
-    "version": "1.1.9999",
+    "version": "2.0.9999",
     "type": "module",
     "projects": [
         "https://grafana.com/docs/k6/latest/"
@@ -26,9 +26,8 @@
         "./browser": "./browser/index.d.ts",
         "./experimental/csv": "./experimental/csv/index.d.ts",
         "./experimental/fs": "./experimental/fs/index.d.ts",
-        "./experimental/redis": "./experimental/redis/index.d.ts",
         "./experimental/streams": "./experimental/streams/index.d.ts",
-        "./experimental/websockets": "./experimental/websockets/index.d.ts"
+        "./websockets": "./websockets/index.d.ts"
     },
     "owners": [
         {
@@ -54,6 +53,14 @@
         {
             "name": "Joan López de la Franca Beltran",
             "githubUsername": "joanlopez"
+        },
+        {
+            "name": "Agnès Toulet",
+            "githubUsername": "AgnesToulet"
+        },
+        {
+            "name": "Iván Szkiba",
+            "githubUsername": "szkiba"
         }
     ]
 }

@@ -7,7 +7,7 @@
  */
 
 import * as d3Random from "d3-random";
-import * as seedrandom from "seedrandom";
+import seedrandom from "seedrandom";
 
 // ------------------------------------------------------------
 // Preparatory Steps
@@ -141,7 +141,7 @@ let prngBinomial: d3Random.RandomBinomial;
 prngBinomial = d3Random.randomBinomial;
 prngBinomial = d3Random.randomBinomial.source(seedrandom("Schroedinger's flea."));
 
-randomNumberGenerator = prngBinomial(0.5);
+randomNumberGenerator = prngBinomial(10, 0.5);
 
 // ------------------------------------------------------------
 // randomGamma

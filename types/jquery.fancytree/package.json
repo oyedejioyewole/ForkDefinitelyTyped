@@ -1,7 +1,7 @@
 {
     "private": true,
     "name": "@types/jquery.fancytree",
-    "version": "0.0.9999",
+    "version": "2.38.9999",
     "projects": [
         "https://github.com/mar10/fancytree"
     ],
@@ -18,8 +18,8 @@
             "githubUsername": "alphaleonis"
         },
         {
-            "name": "Mahdi Abedi",
-            "githubUsername": "abedio"
+            "name": "Mehdi Abedi",
+            "githubUsername": "itsmattius"
         },
         {
             "name": "Nikolai Ommundsen",

@@ -30,6 +30,12 @@ declare namespace OneLine {
          * @param adUnitIds - Array of ad unit IDs to request
          */
         requestSpecificAdUnits(adUnitIds: string[]): void;
+        setBettingCookie(betting: boolean): void;
+        getBaseAdvertisingConfig(): jwplayer.AdvertisingConfig | undefined;
+        hasVisibleVideoAdUi(container: HTMLElement): boolean;
+        isJwPlayerAdBreakActive(container: HTMLElement): boolean;
+        suspendJwPlayerContent(container: HTMLElement): void;
+        resumeJwPlayerContent(container: HTMLElement): void;
     }
     interface VideoCustomParameters {
         [key: string]: number | string | undefined;
@@ -78,25 +84,43 @@ declare namespace OneLine {
 
     interface SocialConsents {
         vendors: {
+            art19: boolean;
+            dailymotion: boolean;
+            facebook: boolean;
+            flourish: boolean;
+            google_maps: boolean;
+            instagram: boolean;
+            jwplayer: boolean;
+            liveblog: boolean;
+            omny: boolean;
+            roninmedia: boolean;
+            sporcle: boolean;
+            spotify: boolean;
             tiktok: boolean;
             twitter: boolean;
-            youtube: boolean;
-            instagram: boolean;
-            facebook: boolean;
-            google_maps: boolean;
-            spotify: boolean;
-            jwplayer: boolean;
-            dailymotion: boolean;
-            omny: boolean;
             vimeo: boolean;
-            liveblog: boolean;
-            art19: boolean;
-            roninmedia: boolean;
+            wecantrack: boolean;
+            youtube: boolean;
         };
     }
 
     type NoParamFunction = () => void;
     type ParamFunction = (arg: any) => void;
+}
+declare namespace jwplayer {
+    interface AdvertisingConfig {
+        client: "vast" | "googima";
+        endstate?: string;
+        outstream?: boolean;
+        rules?: {
+            deferAds?: Record<string, unknown>;
+            frequency?: number;
+            startOn?: number;
+            startOnSeek?: string;
+            timeBetweenAds?: number;
+        };
+        vpaidcontrols?: boolean;
+    }
 }
 declare const OneLine: OneLine.OneLine;
 export = OneLine;

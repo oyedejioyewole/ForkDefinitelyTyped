@@ -1,5 +1,4 @@
 import * as OneLine from "pxr-oneline";
-
 interface BidderParams {
     placementId: string;
 }
@@ -14,23 +13,39 @@ interface BidderConfig {
 
 type NoParamFunction = () => void;
 type ParamFunction = (arg: any) => void;
+interface AdvertisingConfig {
+    client: "vast" | "googima";
+    endstate?: string;
+    outstream?: boolean;
+    rules?: {
+        deferAds?: Record<string, unknown>;
+        frequency?: number;
+        startOn?: number;
+        startOnSeek?: string;
+        timeBetweenAds?: number;
+    };
+    vpaidcontrols?: boolean;
+}
 
 interface SocialConsents {
     vendors: {
+        art19: boolean;
+        dailymotion: boolean;
+        facebook: boolean;
+        flourish: boolean;
+        google_maps: boolean;
+        instagram: boolean;
+        jwplayer: boolean;
+        liveblog: boolean;
+        omny: boolean;
+        roninmedia: boolean;
+        sporcle: boolean;
+        spotify: boolean;
         tiktok: boolean;
         twitter: boolean;
-        youtube: boolean;
-        instagram: boolean;
-        facebook: boolean;
-        google_maps: boolean;
-        spotify: boolean;
-        jwplayer: boolean;
-        dailymotion: boolean;
-        omny: boolean;
         vimeo: boolean;
-        liveblog: boolean;
-        art19: boolean;
-        roninmedia: boolean;
+        wecantrack: boolean;
+        youtube: boolean;
     };
 }
 
@@ -123,6 +138,23 @@ const ndOne: OneLine.OneLine = {
     requestSpecificAdUnits: function(adUnitIds: string[]) {
         this.adUnitRequest(adUnitIds, false);
     },
+
+    setBettingCookie: function(betting: boolean) {
+        // Mock implementation for setBettingCookie
+        this.setBettingCookie(betting);
+    },
+    getBaseAdvertisingConfig: () => {
+        const config: AdvertisingConfig = { client: "vast" };
+        return config;
+    },
+    hasVisibleVideoAdUi: (container: HTMLElement) => {
+        return container.childElementCount > 0;
+    },
+    isJwPlayerAdBreakActive: (container: HTMLElement) => {
+        return container.classList.contains("jw-flag-ads");
+    },
+    suspendJwPlayerContent: (_container: HTMLElement) => {},
+    resumeJwPlayerContent: (_container: HTMLElement) => {},
 };
 
 // Test cases
@@ -133,3 +165,13 @@ ndOne.buildVideoUrl([{ bidder: "testBidder", params: { placementId: "testPlaceme
 ndOne.requestVideoPlayerAds(() => {
     console.log("Video player ads bidding complete");
 });
+ndOne.setBettingCookie(true);
+const advertisingConfig = ndOne.getBaseAdvertisingConfig();
+if (advertisingConfig) {
+    advertisingConfig.client;
+}
+const playerContainer = document.createElement("div");
+ndOne.hasVisibleVideoAdUi(playerContainer);
+ndOne.isJwPlayerAdBreakActive(playerContainer);
+ndOne.suspendJwPlayerContent(playerContainer);
+ndOne.resumeJwPlayerContent(playerContainer);
